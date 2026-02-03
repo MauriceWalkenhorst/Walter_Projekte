@@ -140,10 +140,13 @@
                 </div>
             </div>
             
-            <div class="text-center mt-8">
-                <p class="text-xs text-slate-500 mb-2">Oder überspringen</p>
-                <button @click="skipPair()" class="px-6 py-2 rounded-full glass-card text-slate-400 hover:text-white text-sm transition-colors">
-                    Beide gleich gut
+            <div class="text-center mt-8 space-y-3">
+                <p class="text-xs text-slate-500">Keiner der beiden?</p>
+                <button @click="skipBoth()" class="w-full max-w-xs px-6 py-3 rounded-full glass-card text-slate-400 hover:text-white hover:bg-white/5 text-sm transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Beide nicht gesehen
                 </button>
             </div>
         </div>
@@ -458,6 +461,21 @@
                 
                 skipPair() {
                     this.comparisons++;
+                    if (this.comparisons >= this.maxRounds) {
+                        this.mode = 'building';
+                        setTimeout(() => {
+                            this.calculateRankings();
+                            this.mode = 'results';
+                        }, 1500);
+                    } else {
+                        this.generatePair();
+                    }
+                },
+                
+                skipBoth() {
+                    // Beide Filme werden ignoriert - keine Punkte vergeben
+                    this.comparisons++;
+                    
                     if (this.comparisons >= this.maxRounds) {
                         this.mode = 'building';
                         setTimeout(() => {
