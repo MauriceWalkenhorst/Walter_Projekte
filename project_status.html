@@ -50,12 +50,19 @@
                 </h2>
                 <div class="space-y-3">
                     <template x-for="agent in subAgents" :key="agent.id">
-                        <div class="bg-white border border-purple-100 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                            <div>
-                                <div class="font-bold text-slate-800" x-text="agent.task"></div>
-                                <div class="text-xs text-slate-500" x-text="'Modell: ' + agent.model"></div>
+                        <div class="bg-white border border-purple-100 p-4 rounded-xl shadow-sm">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <div class="font-bold text-slate-800" x-text="agent.task"></div>
+                                    <div class="text-[10px] text-slate-500 uppercase font-bold tracking-widest" x-text="'Modell: ' + agent.model"></div>
+                                </div>
+                                <div class="text-xs font-black text-purple-600 bg-purple-50 px-2 py-1 rounded border border-purple-100" x-text="agent.status"></div>
                             </div>
-                            <div class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded border border-purple-100" x-text="agent.status"></div>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                                <div class="bg-purple-500 h-full transition-all duration-500" :style="'width: ' + agent.status"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-400 italic" x-text="agent.desc"></p>
                         </div>
                     </template>
                 </div>
@@ -132,7 +139,9 @@
     <script>
         function projectTracker() {
             return {
-                subAgents: [],
+                subAgents: [
+                    { id: 1, task: 'Finaler Design-Polishing', model: 'Claude 3.5 Sonnet', status: '95%', desc: 'Bereite den finalen Report für Maurice vor.' }
+                ],
                 tasks: [
                     {
                         id: 1,
