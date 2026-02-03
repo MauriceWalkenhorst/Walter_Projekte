@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schichtplan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+
+    <div x-data="shiftApp()" x-init="loadShifts()" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white flex justify-between items-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            <div class="relative z-10">
+                <h1 class="text-3xl font-extrabold tracking-tight">Mein Schichtplan</h1>
+                <p class="text-blue-100 text-sm mt-2 font-medium">Live aus Quinyx</p>
+            </div>
+            <div class="relative z-10 flex gap-4">
+                <div class="text-right bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20">
+                    <div class="text-4xl font-black">
+                        <span x-text="getCurrentWeekHours()"></span>
+                        <span class="text-lg font-medium text-blue-200">h</span>
+                    </div>
+                    <div class="text-[10px] text-blue-100 uppercase tracking-widest font-semibold mt-1">Diese Woche</div>
+                </div>
+                <div class="text-right bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20 hidden md:block">
+                    <div class="text-4xl font-black" x-text="upcomingCount"></div>
+                    <div class="text-[10px] text-blue-100 uppercase tracking-widest font-semibold mt-1">Kommende</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8 bg-gray-50 min-h-[500px]">
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div class="flex space-x-3 overflow-x-auto pb-2 no-scrollbar">
+                    <button @click="salaryView = false; filter = 'all'" 
+                        :class="!salaryView && filter === 'all' ? 'bg-gray-900 text-white shadow-lg ring-2 ring-gray-900 ring-offset-2' : 'bg-white text-gray-600 border border-gray-200'" 
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">Alle</button>
+                    <button @click="salaryView = false; filter = 'upcoming'" 
+                        :class="!salaryView && filter === 'upcoming' ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-600 ring-offset-2' : 'bg-white text-gray-600 border border-gray-200'" 
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200">Kommende</button>
+                    <button @click="salaryView = !salaryView" 
+                        :class="salaryView ? 'bg-emerald-600 text-white shadow-lg ring-2 ring-emerald-600 ring-offset-2' : 'bg-white text-emerald-700 border border-emerald-200'" 
+                        class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Gehalts-Check
+                    </button>
+                </div>
+                <div class="flex space-x-4 overflow-x-auto pb-2 no-scrollbar w-full md:w-auto" x-show="!salaryView">
+                    <template x-for="week in getWeeklyHours()" :key="week.label">
+                        <div class="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex-shrink-0">
+                            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider" x-text="week.label"></div>
+                            <div class="text-lg font-bold text-gray-800"><span x-text="week.hours"></span> <span class="text-xs font-normal text-gray-500">Std.</span></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="loading" class="text-center py-20">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+                <p class="text-gray-400 text-sm font-medium">Lade Schichten...</p>
+            </div>
+
+            <!-- Salary View -->
+            <div x-show="salaryView && !loading" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <template x-for="month in getMonthlySalary()" :key="month.label">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4" x-text="month.label"></h3>
+                        <div class="mb-4 text-3xl font-black text-emerald-600"><span x-text="month.totalFormatted"></span> €</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between p-2 bg-gray-50 rounded-lg"><span>Lohn (14,23 €/h)</span><span class="font-bold text-gray-900"><span x-text="month.baseFormatted"></span> Std.</span></div>
+                            <div class="flex justify-between p-2 bg-indigo-50 rounded-lg text-indigo-900"><span>Nachtzuschlag (25%)</span><span class="font-bold"><span x-text="month.nightFormatted"></span> Std.</span></div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-emerald-100" x-data="{ extracted: null, status: '', async handle(e){ const f=e.target.files[0]; if(!f)return; this.status='Analysiere...'; const ab=await f.arrayBuffer(); const pdf=await pdfjsLib.getDocument(ab).promise; const page=await pdf.getPage(1); const tc=await page.getTextContent(); const text=tc.items.map(i=>i.str).join(' '); const bm=text.match(/Gesamtbrutto|Brutto.*?(\d+[.,]\d{2})/i); this.extracted=bm?bm[1]:'n.a.'; this.status=''; } }">
+                            <label class="flex flex-col items-center justify-center w-full h-20 border-2 border-emerald-300 border-dashed rounded-xl cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                                <span x-show="!extracted && !status" class="text-xs text-emerald-600 font-medium italic">Lohnabrechnung (PDF) vergleichen</span>
+                                <span x-show="status" x-text="status" class="animate-pulse text-xs text-emerald-600"></span>
+                                <div x-show="extracted" class="text-sm text-emerald-800 flex justify-between w-full px-4">
+                                    <span>Gefunden: <b x-text="extracted"></b> €</span>
+                                    <button @click.prevent="extracted=null" class="text-red-400 text-xs underline font-bold">X</button>
+                                </div>
+                                <input type="file" class="hidden" accept="application/pdf" @change="handle($event)" />
+                            </label>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Shift List -->
+            <div class="space-y-5" x-show="!salaryView && !loading">
+                <template x-for="shift in filteredShifts" :key="shift.start">
+                    <div class="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+                        <div class="flex flex-col md:flex-row md:items-center">
+                            <div class="flex-shrink-0 flex items-center mb-4 md:mb-0 md:mr-6 md:w-20">
+                                <div class="text-center w-full bg-gray-50 rounded-xl p-2 border border-gray-100 group-hover:bg-indigo-50 transition-colors">
+                                    <div class="text-xs text-gray-400 font-bold uppercase" x-text="formatDate(shift.start, 'month')"></div>
+                                    <div class="text-2xl font-black text-gray-800" x-text="formatDate(shift.start, 'day')"></div>
+                                    <div class="text-[10px] text-indigo-500 font-bold" x-text="formatDate(shift.start, 'weekday')"></div>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors" x-text="cleanTitle(shift.title)"></h3>
+                                <div class="flex items-center text-sm text-gray-500 space-x-4 mt-1">
+                                    <span class="font-medium text-gray-700"><span x-text="formatTime(shift.start)"></span> - <span x-text="formatTime(shift.end)"></span></span>
+                                    <span class="text-xs text-gray-400" x-text="getDuration(shift.start, shift.end)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="filteredShifts.length === 0" class="text-center py-20 text-gray-400 font-medium">
+                    Aktuell keine Schichten vorhanden.
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 text-center text-xs text-gray-400 border-t border-gray-100">
+            Zuletzt aktualisiert: <span x-text="new Date().toLocaleTimeString()"></span>
+        </div>
+    </div>
+
+    <script>
+        function shiftApp() {
+            return {
+                rawShifts: [],
+                filter: 'upcoming',
+                salaryView: false,
+                loading: true,
+                async loadShifts() {
+                    try {
+                        const res = await fetch('shifts.json?' + Date.now());
+                        this.rawShifts = await res.json();
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                toISODate(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); },
+                getCinemaWeek(d) {
+                    const anchor = new Date('2026-01-01T00:00:00');
+                    const current = new Date(d); current.setHours(0,0,0,0);
+                    const day = current.getDay();
+                    const diff = (day < 4 ? day + 7 : day) - 4;
+                    current.setDate(current.getDate() - diff);
+                    return Math.round((current - anchor) / 604800000) + 1;
+                },
+                get filteredShifts() { 
+                    return this.rawShifts.filter(s => this.filter === 'all' || new Date(s.end) >= new Date()); 
+                },
+                get upcomingCount() { return this.rawShifts.filter(s => new Date(s.end) >= new Date()).length; },
+                formatDate(ds, p) {
+                    const d = new Date(ds); const o = { timeZone: 'Europe/Berlin' };
+                    if (p === 'weekday') return d.toLocaleDateString('de-DE', { ...o, weekday: 'short' });
+                    if (p === 'day') return d.toLocaleDateString('de-DE', { ...o, day: '2-digit' });
+                    if (p === 'month') return d.toLocaleDateString('de-DE', { ...o, month: 'short' });
+                    return '';
+                },
+                formatTime(ds) { return new Date(ds).toLocaleTimeString('de-DE', { timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit' }); },
+                getCurrentWeekHours() {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const diff = (day < 4 ? day + 7 : day) - 4;
+                    const ws = new Date(now); ws.setDate(now.getDate() - diff); ws.setHours(0,0,0,0);
+                    const we = new Date(ws); we.setDate(ws.getDate() + 7);
+                    let h = 0;
+                    this.rawShifts.forEach(s => {
+                        const ss = new Date(s.start);
+                        if (ss >= ws && ss < we) h += this.getNetDuration(s.start, s.end);
+                    });
+                    return h.toFixed(1);
+                },
+                getDuration(s, e) {
+                    const d = (new Date(e) - new Date(s)) / 3600000;
+                    const h = Math.floor(d); const m = Math.round((d-h)*60);
+                    return h + ' Std' + (m > 0 ? ' ' + m + ' Min' : '');
+                },
+                getNetDuration(s, e) {
+                    const h = (new Date(e) - new Date(s)) / 3600000;
+                    let b = 0; if (h > 9) b = 0.75; else if (h > 6) b = 0.5;
+                    return Math.max(0, h - b);
+                },
+                getWeeklyHours() {
+                    const w = {};
+                    this.rawShifts.forEach(s => {
+                        const d = new Date(s.start); const day = d.getDay(); const diff = (day < 4 ? day + 7 : day) - 4;
+                        const ws = new Date(d); ws.setDate(d.getDate() - diff); ws.setHours(0,0,0,0);
+                        const k = this.toISODate(ws);
+                        if (!w[k]) w[k] = 0; w[k] += this.getNetDuration(s.start, s.end);
+                    });
+                    const res = [];
+                    Object.keys(w).sort().forEach(k => {
+                        const s = new Date(k); const e = new Date(s); e.setDate(s.getDate() + 6);
+                        if (new Date(e).setHours(23,59,59) >= new Date()) {
+                            res.push({ label: 'KW ' + this.getCinemaWeek(s) + ' (' + s.getDate() + '.' + (s.getMonth()+1) + '. - ' + e.getDate() + '.' + (e.getMonth()+1) + '.)', hours: w[k].toFixed(1) });
+                        }
+                    });
+                    return res;
+                },
+                getMonthlySalary() {
+                    const m = {};
+                    this.rawShifts.forEach(s => {
+                        const d = new Date(s.start); const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+                        if (!m[k]) m[k] = { label: d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }), base: 0, night: 0, total: 0 };
+                        const net = this.getNetDuration(s.start, s.end);
+                        const n = this.getNightHours(s.start, s.end);
+                        m[k].base += net; m[k].night += n;
+                        m[k].total += (net * 14.23) + (n * 14.23 * 0.25);
+                    });
+                    return Object.values(m).map(i => ({ ...i, totalFormatted: i.total.toFixed(2).replace('.', ','), baseFormatted: i.base.toFixed(1), nightFormatted: i.night.toFixed(1) }));
+                },
+                getNightHours(s, e) {
+                    const st = new Date(s); const en = new Date(e);
+                    const ns = new Date(st); ns.setHours(23,0,0,0);
+                    const ne = new Date(st); ne.setDate(ne.getDate()+1); ne.setHours(6,0,0,0);
+                    const os = new Date(Math.max(st, ns)); const oe = new Date(Math.min(en, ne));
+                    return oe > os ? (oe - os) / 3600000 : 0;
+                },
+                cleanTitle(t) { return t.replace(/^ q: /, '').replace(/ \([^)]+\)/, ''); },
+                getRoleBadgeStyle(t) {
+                    if (t.includes('Kinokasse')) return 'bg-blue-100 text-blue-800';
+                    if (t.includes('Platzanweiser')) return 'bg-green-100 text-green-800';
+                    if (t.includes('F&B')) return 'bg-orange-100 text-orange-800';
+                    return 'bg-gray-100 text-gray-800';
+                },
+                getRoleName(t) {
+                    if (t.includes('Kinokasse')) return 'Kasse';
+                    if (t.includes('Platzanweiser')) return 'Saal';
+                    if (t.includes('F&B')) return 'Gastro';
+                    return 'Sonstiges';
+                },
+                getStatusDot(e) { return new Date(e) < new Date() ? 'bg-gray-300' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'; }
+            }
+        }
+    </script>
+</body>
+</html>

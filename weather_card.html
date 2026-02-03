@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { margin: 0; padding: 0; background: #fff; width: 600px; height: 300px; overflow: hidden; }
+  .card {
+    width: 600px; height: 300px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white; padding: 40px;
+    font-family: 'DejaVu Sans', 'Arial', sans-serif; box-sizing: border-box;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .weather h1 { font-size: 70px; margin: 10px 0; }
+  .weather h2 { font-size: 24px; margin: 0; font-weight: normal; opacity: 0.9; }
+  .weather .status { font-size: 28px; margin: 0; }
+  .shift { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 30px; flex: 1; }
+  .shift .label { font-size: 14px; opacity: 0.7; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 15px; }
+  .shift .date { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+  .shift .time { font-size: 26px; margin-bottom: 15px; }
+  .shift .role { background: rgba(255,255,255,0.2); display: inline-block; padding: 8px 15px; border-radius: 10px; font-size: 18px; font-weight: bold; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div style="flex: 1;">
+      <h2>Bochum (UCI RP)</h2>
+      <h1>-2°C</h1>
+      <p class="status">☀️ Sonnig</p>
+    </div>
+    <div class="shift">
+      <div class="label">NÄCHSTE SCHICHT</div>
+      <div class="date">Mi, 04. Feb.</div>
+      <div class="time">16:00 – 23:45</div>
+      <div class="role">🎟️ Kinokasse</div>
+    </div>
+  </div>
+</body>
+</html>
