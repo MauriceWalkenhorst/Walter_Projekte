@@ -47,14 +47,34 @@
             </div>
 
             <!-- OpenRouter (DeepSeek/Claude) -->
-            <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-sm flex justify-between items-center border-l-blue-900/50 border-l-4">
-                <div>
-                    <div class="text-blue-500 font-bold">OpenRouter (Backup)</div>
-                    <div class="text-[10px] text-zinc-500 uppercase">DeepSeek-V3 / Claude 3.5 Sonnet</div>
+            <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-sm flex flex-col gap-4 border-l-blue-900/50 border-l-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <div class="text-blue-500 font-bold">OpenRouter (Backup)</div>
+                        <div class="text-[10px] text-zinc-500 uppercase">Multi-Provider Gateway</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-white font-bold text-lg">Aktiv</div>
+                        <div class="text-[10px] text-zinc-600 italic">Failover-Schutz</div>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-white font-bold text-lg">~ $0.0150</div>
-                    <div class="text-[10px] text-zinc-600 italic">pro Turn (avg)</div>
+                <div class="grid grid-cols-2 gap-2 mt-2 border-t border-zinc-800 pt-4">
+                    <div class="bg-zinc-950 p-2 rounded">
+                        <div class="text-white text-xs font-bold">DeepSeek V3</div>
+                        <div class="text-[10px] text-zinc-600">$0.002 / 1k Tok</div>
+                    </div>
+                    <div class="bg-zinc-950 p-2 rounded">
+                        <div class="text-white text-xs font-bold">Claude 3.5 Sonnet</div>
+                        <div class="text-[10px] text-zinc-600">$0.015 / 1k Tok</div>
+                    </div>
+                    <div class="bg-zinc-950 p-2 rounded">
+                        <div class="text-white text-xs font-bold">GPT-4o mini</div>
+                        <div class="text-[10px] text-zinc-600">$0.0006 / 1k Tok</div>
+                    </div>
+                    <div class="bg-zinc-950 p-2 rounded">
+                        <div class="text-white text-xs font-bold">Llama 3.3 70B</div>
+                        <div class="text-[10px] text-zinc-600">$0.0008 / 1k Tok</div>
+                    </div>
                 </div>
             </div>
 
