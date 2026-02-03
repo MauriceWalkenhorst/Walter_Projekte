@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KI-Kosten | Walter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="p-6 md:p-10" x-data="costApp()">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Header -->
+        <div class="mb-10 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Modell-Kosten</h1>
+                <p class="text-slate-500 mt-2 font-medium">Aktuelle Nutzung für Februar 2026</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-slate-400 font-medium uppercase tracking-wider mb-1">Gesamt</div>
+                <div class="text-5xl font-black text-purple-600 tracking-tighter" x-text="costs.total + ' €'"></div>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Input -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2v2H9v-2H7v-2h2V7h2v2h2v2z"/></svg>
+                </div>
+                <div class="text-sm text-blue-500 font-bold uppercase tracking-wider mb-2">Input Tokens</div>
+                <div class="text-3xl font-black text-slate-900" x-text="formatNumber(costs.inputTokens)"></div>
+                <div class="text-sm text-slate-400 mt-1">Verarbeitete Wörter/Befehle</div>
+            </div>
+
+            <!-- Output -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div class="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v12H5.17L4 17.17V4m0-2c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2H4zm11 11h-2v-2h2v2zm0-4h-2V7h2v2z"/></svg>
+                </div>
+                <div class="text-sm text-purple-500 font-bold uppercase tracking-wider mb-2">Output Tokens</div>
+                <div class="text-3xl font-black text-slate-900" x-text="formatNumber(costs.outputTokens)"></div>
+                <div class="text-sm text-slate-400 mt-1">Generierte Antworten</div>
+            </div>
+        </div>
+
+        <!-- Breakdown Table -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-700">Modell-Aufschlüsselung</h3>
+                <span class="text-xs font-medium px-2 py-1 bg-slate-200 text-slate-600 rounded">Live-Schätzung</span>
+            </div>
+            <div class="divide-y divide-slate-50">
+                <template x-for="model in costs.models" :key="model.name">
+                    <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4" :class="model.name.includes('Pro') ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-900" x-text="model.name"></div>
+                                <div class="text-xs text-slate-400 font-medium mt-0.5">
+                                    <span x-text="formatNumber(model.input)"></span> In · <span x-text="formatNumber(model.output)"></span> Out
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-black text-slate-800 text-lg" x-text="model.cost + ' €'"></div>
+                            <div class="text-xs text-slate-400 font-medium">ca. Kosten</div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center text-xs text-slate-300 font-medium">
+            Preise basierend auf Google Gemini API • Aktualisiert: <span x-text="new Date().toLocaleTimeString()"></span>
+        </div>
+
+    </div>
+
+    <script>
+        function costApp() {
+            return {
+                costs: {
+                    total: '0,54', 
+                    inputTokens: 180250,
+                    outputTokens: 4200,
+                    models: [
+                        { name: 'Gemini 3 Pro', input: 120000, output: 2500, cost: '0,42' },
+                        { name: 'Gemini 3 Flash', input: 60250, output: 1700, cost: '0,12' }
+                    ]
+                },
+                formatNumber(num) {
+                    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
