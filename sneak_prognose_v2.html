@@ -3,172 +3,724 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sneak Prognose | Zenima Style</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Sneak Prognose</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Graphik:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        .hero-section {
-            height: 60vh;
-            background-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(15,23,42,1) 100%), url('https://images.alphacoders.com/134/1341101.png');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: flex-end;
-            padding: 4rem 2rem;
-            color: white;
+        :root {
+            --bg-primary: #14181c;
+            --bg-secondary: #1c2228;
+            --bg-card: #242c34;
+            --text-primary: #fff;
+            --text-secondary: #9ab;
+            --text-muted: #678;
+            --accent-green: #00e054;
+            --accent-orange: #ff8000;
+            --accent-blue: #40bcf4;
+            --star-color: #00c030;
+            --border-color: #2c3440;
         }
-
-        .nav-glass {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
+        
+        body {
+            font-family: 'Graphik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
         }
-
-        .poster-card {
-            aspect-ratio: 2/3;
-            background-size: cover;
-            background-position: center;
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Header */
+        .app-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .app-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .app-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        /* Current Prediction Section */
+        .prediction-section {
+            margin-bottom: 60px;
+        }
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent-green);
+            margin-bottom: 20px;
+        }
+        
+        .current-film {
+            display: grid;
+            grid-template-columns: 230px 1fr;
+            gap: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 700px) {
+            .current-film {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .current-film .poster-container {
+                justify-self: center;
+            }
+        }
+        
+        .poster-container {
+            position: relative;
+        }
+        
+        .poster {
+            width: 230px;
+            height: 345px;
             border-radius: 4px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
+            object-fit: cover;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
         }
-        .poster-card:hover { transform: scale(1.05); }
-
-        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        
+        .film-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .film-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+        
+        .film-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+        
+        .film-meta span {
+            margin-right: 15px;
+        }
+        
+        /* Star Rating */
+        .rating-section {
+            margin-bottom: 25px;
+        }
+        
+        .rating-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stars {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .star {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            fill: var(--bg-card);
+            stroke: var(--text-muted);
+            stroke-width: 1px;
+        }
+        
+        .star:hover {
+            transform: scale(1.15);
+        }
+        
+        .star.active {
+            fill: var(--star-color);
+            stroke: var(--star-color);
+        }
+        
+        .star.half {
+            fill: url(#half-gradient);
+            stroke: var(--star-color);
+        }
+        
+        .rating-display {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        /* Comment Box */
+        .comment-section {
+            margin-top: auto;
+        }
+        
+        .comment-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .comment-input {
+            width: 100%;
+            min-height: 80px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px 15px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .comment-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        
+        .submit-btn {
+            margin-top: 12px;
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.2s;
+        }
+        
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* History Section */
+        .history-section {
+            margin-top: 50px;
+        }
+        
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+        
+        @media (max-width: 600px) {
+            .history-grid {
+                grid-template-columns: 1fr;
+                max-width: 280px;
+                margin: 0 auto;
+            }
+        }
+        
+        .history-card {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        
+        .history-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .history-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .history-info {
+            padding: 15px;
+        }
+        
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        
+        .history-stars {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .history-star {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            fill: var(--bg-card);
+            stroke: var(--text-muted);
+            stroke-width: 1px;
+            transition: transform 0.1s;
+        }
+        
+        .history-star:hover {
+            transform: scale(1.2);
+        }
+        
+        .history-star.active {
+            fill: var(--star-color);
+            stroke: var(--star-color);
+        }
+        
+        /* Footer */
+        .app-footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .footer-text {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .device-id {
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            opacity: 0.6;
+        }
+        
+        /* Status Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
-<body x-data="sneakApp()" x-init="init()">
-
-    <!-- Navbar (Zenima Style) -->
-    <nav class="fixed top-0 left-0 right-0 z-50 p-6 flex justify-between items-center text-white bg-gradient-to-b from-black/50 to-transparent">
-        <div class="text-xl font-black tracking-tighter uppercase">ZENIMA <span class="text-slate-400 font-light">PROGNOSE</span></div>
-        <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest opacity-80">
-            <a href="#" class="hover:opacity-100">Filme</a>
-            <a href="#" class="hover:opacity-100">Archiv</a>
-            <a href="#" class="hover:opacity-100">Community</a>
-        </div>
-        <div class="flex items-center gap-4">
-            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <div class="w-8 h-8 rounded-full bg-slate-700 border border-white/20 overflow-hidden">
-                <img src="https://mauricewalkenhorst.github.io/Walter_Projekte/walter_mitty.png" class="w-full h-full object-cover">
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Area -->
-    <header class="hero-section relative">
-        <div class="max-w-6xl mx-auto w-full">
-            <div class="mb-2 text-xs font-black uppercase tracking-[0.3em] text-blue-400">Sneak Favorit KW 06</div>
-            <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-4 italic">Cold Storage</h1>
-            <div class="flex items-center gap-6 text-sm font-medium opacity-80">
-                <span>2026</span>
-                <span>•</span>
-                <span>Thriller / Sci-Fi</span>
-                <span>•</span>
-                <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">PROGNOSE: 92%</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Quick Selection Grid -->
-    <div class="bg-slate-900 pb-20 px-6 -mt-1">
-        <div class="max-w-6xl mx-auto">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <template x-for="movie in movies" :key="movie.title">
-                    <div class="space-y-3 group cursor-pointer">
-                        <div class="poster-card" :style="'background-image: url(' + movie.poster + ')'"></div>
-                        <div class="text-[11px] font-bold text-white uppercase tracking-wider group-hover:text-blue-400 transition-colors" x-text="movie.title"></div>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 class="app-title">Sneak Prognose</h1>
+            <p class="app-subtitle">UCI Ruhr Park · KW 06/2026</p>
+        </header>
+        
+        <!-- Current Prediction -->
+        <section class="prediction-section">
+            <div class="section-label">Aktuelle Prognose</div>
+            <div class="current-film">
+                <div class="poster-container">
+                    <img class="poster" id="currentPoster" 
+                         src="https://image.tmdb.org/t/p/w500/kve20tXwUZpu4GUX8l6X7Z4jmL6.jpg" 
+                         alt="Shutter Island Poster"
+                         onerror="this.src='https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg'">
+                </div>
+                <div class="film-details">
+                    <h2 class="film-title" id="currentTitle">Shutter Island</h2>
+                    <div class="film-meta">
+                        <span id="currentYear">2010</span>
+                        <span id="currentGenre">Thriller · Mystery</span>
+                        <span id="currentDirector">Martin Scorsese</span>
                     </div>
-                </template>
-            </div>
-        </div>
-    </div>
-
-    <!-- Details Section (White/Grey) -->
-    <main class="max-w-6xl mx-auto py-20 px-6">
-        <div class="flex gap-12 mb-10 text-xs font-black uppercase tracking-widest border-b border-slate-200">
-            <button class="pb-4 tab-active">Top Prognosen</button>
-            <button class="pb-4 text-slate-400 hover:text-slate-600">Archiv</button>
-            <button class="pb-4 text-slate-400 hover:text-slate-600">UCI Community</button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            <!-- Left Info -->
-            <div class="lg:col-span-8 space-y-12">
-                <section>
-                    <h3 class="text-2xl font-black mb-6 italic">Warum dieser Film?</h3>
-                    <p class="text-slate-500 leading-relaxed max-w-2xl">
-                        Basierend auf den aktuellen Meldungen von sneak-kino.de und den UCI Test-Screenings ist "Cold Storage" der heißeste Kandidat. Das Release-Datum passt perfekt zum Sneak-Fenster im Ruhr Park.
-                    </p>
-                </section>
-
-                <section>
-                    <h3 class="text-2xl font-black mb-6 italic">Deine Bewertung</h3>
-                    <div class="flex gap-4">
-                        <template x-for="i in 5">
-                            <button @click="rating = i" class="text-slate-300 hover:scale-110 transition-transform">
-                                <svg class="w-10 h-10" :class="rating >= i ? 'text-amber-400 fill-current' : 'fill-none'" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            </button>
-                        </template>
+                    
+                    <div class="rating-section">
+                        <div class="rating-label">Deine Bewertung</div>
+                        <div class="stars" id="mainStars">
+                            <!-- Stars rendered by JS -->
+                        </div>
+                        <div class="rating-display" id="ratingDisplay">Noch nicht bewertet</div>
                     </div>
-                </section>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="lg:col-span-4 bg-slate-100 rounded-3xl p-8 h-fit">
-                <h4 class="text-xs font-black uppercase tracking-widest mb-6">Letzte Sneaks</h4>
-                <div class="space-y-6">
-                    <div class="flex gap-4">
-                        <div class="w-12 h-16 bg-slate-300 rounded overflow-hidden">
-                             <img src="https://www.themoviedb.org/t/p/w200/q6K1T4mG3Y8D2e3XzV3F9r4F5L6.jpg" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold">Primate</div>
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Januar 2026</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="w-12 h-16 bg-slate-300 rounded overflow-hidden">
-                             <img src="https://www.themoviedb.org/t/p/w200/vRstO6X8S80p0C66Yv94vL8AJSW.jpg" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold">Send Help</div>
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Januar 2026</div>
-                        </div>
+                    
+                    <div class="comment-section">
+                        <div class="comment-label">Kurzkritik</div>
+                        <textarea class="comment-input" id="commentInput" 
+                                  placeholder="Was denkst du über diesen Film?"></textarea>
+                        <button class="submit-btn" id="submitBtn" onclick="submitRating()">
+                            Bewertung speichern
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-
-    <footer class="bg-white py-12 px-6 border-t border-slate-200">
-        <div class="max-w-6xl mx-auto flex justify-between items-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-            <span>Zenima Cinema Core 2026</span>
-            <div class="flex gap-8">
-                <a href="index.html" class="hover:text-black transition-colors">OS Launcher</a>
-                <a href="#" class="hover:text-black transition-colors">Privacy</a>
+        </section>
+        
+        <!-- History -->
+        <section class="history-section">
+            <div class="section-label">Letzte Sneak-Filme</div>
+            <div class="history-grid" id="historyGrid">
+                <!-- Cards rendered by JS -->
             </div>
-        </div>
-    </footer>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p class="footer-text">Sneak Prognose für UCI Ruhr Park</p>
+            <p class="device-id" id="deviceIdDisplay"></p>
+        </footer>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast">Bewertung gespeichert!</div>
+    
+    <!-- SVG Defs -->
+    <svg style="display: none;">
+        <defs>
+            <linearGradient id="half-gradient">
+                <stop offset="50%" stop-color="#00c030"/>
+                <stop offset="50%" stop-color="#242c34"/>
+            </linearGradient>
+        </defs>
+    </svg>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    
     <script>
-        function sneakApp() {
-            return {
-                rating: 0,
-                movies: [
-                    { title: 'Cold Storage', poster: 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/vRstO6X8S80p0C66Yv94vL8AJSW.jpg' },
-                    { title: 'No Other Choice', poster: 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/q6K1T4mG3Y8D2e3XzV3F9r4F5L6.jpg' },
-                    { title: 'Dead of Winter', poster: 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/7W9Y5vRsh8D6yHwK0K9yBv7p6u4.jpg' },
-                    { title: 'Return to Silent Hill', poster: 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/pB9Ja7vC5S1f3Z3yK6X8lYFzX5z.jpg' },
-                    { title: 'Shutter Island', poster: 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/469Y96SszT6pC6vRish65YhQ3rY.jpg' }
-                ],
-                init() {
-                    console.log('Zenima Interface initialized.');
-                }
+        // ============================================
+        // FIREBASE CONFIGURATION (PLATZHALTER)
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Initialize Firebase (nur wenn echte Config vorhanden)
+        let db = null;
+        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        }
+        
+        // ============================================
+        // DEVICE ID (UUID via LocalStorage)
+        // ============================================
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('sneak_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + crypto.randomUUID();
+                localStorage.setItem('sneak_device_id', deviceId);
+            }
+            return deviceId;
+        }
+        
+        const DEVICE_ID = getDeviceId();
+        
+        // ============================================
+        // FILM DATA (Echte TMDB Poster-IDs)
+        // ============================================
+        const CURRENT_FILM = {
+            id: 'sneak_2026_kw06',
+            title: 'Shutter Island',
+            year: 2010,
+            genre: 'Thriller · Mystery',
+            director: 'Martin Scorsese',
+            poster: '/kve20tXwUZpu4GUX8l6X7Z4jmL6.jpg' // Shutter Island
+        };
+        
+        const HISTORY_FILMS = [
+            {
+                id: 'sneak_2026_kw05',
+                title: 'Inception',
+                date: 'KW 05 · Jan 2026',
+                poster: '/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg' // Inception
+            },
+            {
+                id: 'sneak_2026_kw04',
+                title: 'The Dark Knight',
+                date: 'KW 04 · Jan 2026',
+                poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg' // The Dark Knight
+            },
+            {
+                id: 'sneak_2026_kw03',
+                title: 'Interstellar',
+                date: 'KW 03 · Jan 2026',
+                poster: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' // Interstellar
+            }
+        ];
+        
+        const TMDB_BASE = 'https://image.tmdb.org/t/p/w500';
+        
+        // ============================================
+        // STATE
+        // ============================================
+        let currentRating = 0;
+        let historyRatings = {};
+        
+        // Load saved ratings from localStorage
+        function loadRatings() {
+            const saved = localStorage.getItem('sneak_ratings');
+            if (saved) {
+                const data = JSON.parse(saved);
+                currentRating = data[CURRENT_FILM.id]?.rating || 0;
+                document.getElementById('commentInput').value = data[CURRENT_FILM.id]?.comment || '';
+                historyRatings = data;
             }
         }
+        
+        // Save ratings to localStorage
+        function saveRatings() {
+            historyRatings[CURRENT_FILM.id] = {
+                rating: currentRating,
+                comment: document.getElementById('commentInput').value
+            };
+            localStorage.setItem('sneak_ratings', JSON.stringify(historyRatings));
+        }
+        
+        // ============================================
+        // STAR RENDERING
+        // ============================================
+        function createStarSVG(className = '') {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('class', className);
+            svg.innerHTML = '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>';
+            return svg;
+        }
+        
+        function renderMainStars() {
+            const container = document.getElementById('mainStars');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                const star = createStarSVG('star');
+                if (i <= currentRating) {
+                    star.classList.add('active');
+                }
+                star.addEventListener('click', () => setMainRating(i));
+                star.addEventListener('mouseenter', () => previewRating(i));
+                star.addEventListener('mouseleave', () => previewRating(currentRating));
+                container.appendChild(star);
+            }
+            
+            updateRatingDisplay();
+        }
+        
+        function setMainRating(rating) {
+            currentRating = rating;
+            renderMainStars();
+            saveRatings();
+        }
+        
+        function previewRating(rating) {
+            const stars = document.querySelectorAll('#mainStars .star');
+            stars.forEach((star, idx) => {
+                star.classList.toggle('active', idx < rating);
+            });
+        }
+        
+        function updateRatingDisplay() {
+            const display = document.getElementById('ratingDisplay');
+            if (currentRating === 0) {
+                display.textContent = 'Noch nicht bewertet';
+            } else {
+                const labels = ['', 'Schlecht', 'Mäßig', 'Okay', 'Gut', 'Ausgezeichnet'];
+                display.textContent = `${currentRating}/5 · ${labels[currentRating]}`;
+            }
+        }
+        
+        // ============================================
+        // HISTORY CARDS
+        // ============================================
+        function renderHistory() {
+            const grid = document.getElementById('historyGrid');
+            grid.innerHTML = '';
+            
+            HISTORY_FILMS.forEach(film => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                
+                const savedRating = historyRatings[film.id]?.rating || 0;
+                
+                card.innerHTML = `
+                    <img class="history-poster" 
+                         src="${TMDB_BASE}${film.poster}" 
+                         alt="${film.title}"
+                         onerror="this.src='${TMDB_BASE}/d5NXSklXo0qyIYkgV94XAgMIckC.jpg'">
+                    <div class="history-info">
+                        <div class="history-title">${film.title}</div>
+                        <div class="history-date">${film.date}</div>
+                        <div class="history-stars" data-film-id="${film.id}">
+                            ${[1,2,3,4,5].map(i => `
+                                <svg class="history-star ${i <= savedRating ? 'active' : ''}" 
+                                     viewBox="0 0 24 24" 
+                                     data-rating="${i}">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                // Add click handlers for history stars
+                card.querySelectorAll('.history-star').forEach(star => {
+                    star.addEventListener('click', (e) => {
+                        const rating = parseInt(e.currentTarget.dataset.rating);
+                        setHistoryRating(film.id, rating, card);
+                    });
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function setHistoryRating(filmId, rating, card) {
+            historyRatings[filmId] = { rating };
+            localStorage.setItem('sneak_ratings', JSON.stringify(historyRatings));
+            
+            card.querySelectorAll('.history-star').forEach((star, idx) => {
+                star.classList.toggle('active', idx < rating);
+            });
+            
+            showToast('Bewertung gespeichert!');
+            
+            // Sync to Firebase if available
+            if (db) {
+                syncToFirebase(filmId, rating);
+            }
+        }
+        
+        // ============================================
+        // FIREBASE SYNC
+        // ============================================
+        async function syncToFirebase(filmId, rating, comment = '') {
+            if (!db) return;
+            
+            try {
+                await db.collection('ratings').doc(`${DEVICE_ID}_${filmId}`).set({
+                    deviceId: DEVICE_ID,
+                    filmId: filmId,
+                    rating: rating,
+                    comment: comment,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('Synced to Firebase');
+            } catch (error) {
+                console.error('Firebase sync error:', error);
+            }
+        }
+        
+        // ============================================
+        // SUBMIT HANDLER
+        // ============================================
+        function submitRating() {
+            if (currentRating === 0) {
+                showToast('Bitte erst eine Bewertung abgeben');
+                return;
+            }
+            
+            saveRatings();
+            
+            const comment = document.getElementById('commentInput').value;
+            
+            // Sync to Firebase if available
+            if (db) {
+                syncToFirebase(CURRENT_FILM.id, currentRating, comment);
+            }
+            
+            showToast('Bewertung gespeichert!');
+        }
+        
+        // ============================================
+        // TOAST NOTIFICATION
+        // ============================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function init() {
+            // Set current film data
+            document.getElementById('currentPoster').src = TMDB_BASE + CURRENT_FILM.poster;
+            document.getElementById('currentTitle').textContent = CURRENT_FILM.title;
+            document.getElementById('currentYear').textContent = CURRENT_FILM.year;
+            document.getElementById('currentGenre').textContent = CURRENT_FILM.genre;
+            document.getElementById('currentDirector').textContent = CURRENT_FILM.director;
+            
+            // Show device ID
+            document.getElementById('deviceIdDisplay').textContent = `Device: ${DEVICE_ID.substring(0, 20)}...`;
+            
+            // Load saved data
+            loadRatings();
+            
+            // Render UI
+            renderMainStars();
+            renderHistory();
+            
+            console.log('Sneak Prognose initialized');
+            console.log('Device ID:', DEVICE_ID);
+        }
+        
+        // Start
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
