@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0c0e">
+    <title>Film Duel | Welcher Film ist besser?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 40%, rgba(239, 68, 68, 0.1), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59, 130, 246, 0.1), transparent),
+                linear-gradient(180deg, #0a0c0e 0%, #14181c 100%);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .film-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .film-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .film-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+        
+        .vs-badge {
+            animation: pulse-vs 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-vs {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        .rank-item {
+            animation: slide-in 0.3s ease-out;
+        }
+        
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .streak-flame {
+            animation: flicker 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="text-white antialiased overflow-x-hidden" x-data="filmDuel()" x-init="init()">
+    
+    <div class="aurora"></div>
+    
+    <!-- Toast -->
+    <div x-show="toast.show" x-cloak x-transition class="fixed top-24 left-1/2 -translate-x-1/2 z-50 glass-card px-6 py-3 rounded-full flex items-center gap-2">
+        <span x-text="toast.message" class="text-sm font-medium"></span>
+    </div>
+    
+    <div class="min-h-screen px-4 py-6 pb-24 max-w-4xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/20">
+                        <span class="text-2xl font-black text-white">VS</span>
+                    </div>
+                    <div>
+                        <h1 class="font-display text-2xl font-bold tracking-tight">Film<span class="text-red-400">Duel</span></h1>
+                        <p class="text-xs text-slate-400">Finde deine Top-Filme</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <!-- Streak -->
+                    <div x-show="streak > 0" class="flex items-center gap-1 streak-flame">
+                        <span class="text-xl">🔥</span>
+                        <span class="font-bold text-orange-400" x-text="streak"></span>
+                    </div>
+                    
+                    <!-- Progress -->
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400">Fortschritt</p>
+                        <p class="font-display font-bold"><span x-text="Math.min(comparisons, targetComparisons)"></span>/<span x-text="targetComparisons"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div class="progress-bar h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
+                     :style="'width: ' + Math.min((comparisons / targetComparisons) * 100, 100) + '%'"></div>
+            </div>
+        </header>
+        
+        <!-- MODE: DUEL -->
+        <div x-show="mode === 'duel'" x-cloak>
+            <div class="text-center mb-6">
+                <p class="text-slate-400 text-sm">Welcher Film ist besser?</p>
+                <p class="text-xs text-slate-500 mt-1">Runde <span x-text="comparisons + 1"></span></p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-4 md:gap-8 relative">
+                <!-- VS Badge -->
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-14 h-14 rounded-full bg-black border-2 border-red-500 flex items-center justify-center vs-badge shadow-xl shadow-red-500/30">
+                    <span class="font-black text-red-500 text-lg">VS</span>
+                </div>
+                
+                <!-- Film A -->
+                <div @click="chooseFilm(currentPair[0])" 
+                     class="film-card glass-card rounded-3xl overflow-hidden"
+                     :class="{ 'ring-2 ring-emerald-500': selected === currentPair[0]?.id }">
+                    <div class="aspect-[2/3] relative">
+                        <img :src="tmdbBase + currentPair[0]?.poster" 
+                             @error="$event.target.src = 'https://via.placeholder.com/300x450/1c2228/9ab?text=?'"
+                             class="w-full h-full object-cover"
+                             :alt="currentPair[0]?.title">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-display text-xl font-bold mb-1" x-text="currentPair[0]?.title"></h3>
+                        <p class="text-sm text-slate-400" x-text="currentPair[0]?.meta"></p>
+                    </div>
+                </div>
+                
+                <!-- Film B -->
+                <div @click="chooseFilm(currentPair[1])" 
+                     class="film-card glass-card rounded-3xl overflow-hidden"
+                     :class="{ 'ring-2 ring-emerald-500': selected === currentPair[1]?.id }">
+                    <div class="aspect-[2/3] relative">
+                        <img :src="tmdbBase + currentPair[1]?.poster" 
+                             @error="$event.target.src = 'https://via.placeholder.com/300x450/1c2228/9ab?text=?'"
+                             class="w-full h-full object-cover"
+                             :alt="currentPair[1]?.title">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-display text-xl font-bold mb-1" x-text="currentPair[1]?.title"></h3>
+                        <p class="text-sm text-slate-400" x-text="currentPair[1]?.meta"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skip Button -->
+            <div class="text-center mt-6">
+                <button @click="skipPair()" class="text-slate-500 hover:text-slate-300 text-sm flex items-center gap-1 mx-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                    </svg>
+                    Überspringen
+                </button>
+            </div>
+        </div>
+        
+        <!-- MODE: RESULTS -->
+        <div x-show="mode === 'results'" x-cloak>
+            <div class="text-center mb-6">
+                <h2 class="font-display text-3xl font-bold mb-2">Deine Top-Filme! 🎉</h2>
+                <p class="text-slate-400">Basierend auf <span x-text="comparisons"></span> Entscheidungen</p>
+            </div>
+            
+            <!-- Winner Podium -->
+            <div class="flex justify-center items-end gap-4 mb-8">
+                <!-- 2nd Place -->
+                <div x-show="rankings.length > 1" class="text-center">
+                    <div class="glass-card rounded-2xl p-3 mb-2 w-24">
+                        <img :src="tmdbBase + rankings[1]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                    </div>
+                    <span class="text-2xl font-black text-slate-400">2</span>
+                    <p class="text-xs truncate w-24" x-text="rankings[1]?.title"></p>
+                </div>
+                
+                <!-- 1st Place -->
+                <div x-show="rankings.length > 0" class="text-center -mt-4">
+                    <div class="text-4xl mb-2">👑</div>
+                    <div class="glass-card rounded-2xl p-4 mb-2 w-32 border-2 border-yellow-500/50 shadow-lg shadow-yellow-500/20">
+                        <img :src="tmdbBase + rankings[0]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                    </div>
+                    <span class="text-3xl font-black text-yellow-400">1</span>
+                    <p class="text-sm font-bold truncate w-32" x-text="rankings[0]?.title"></p>
+                </div>
+                
+                <!-- 3rd Place -->
+                <div x-show="rankings.length > 2" class="text-center">
+                    <div class="glass-card rounded-2xl p-3 mb-2 w-24">
+                        <img :src="tmdbBase + rankings[2]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                    </div>
+                    <span class="text-2xl font-black text-orange-600">3</span>
+                    <p class="text-xs truncate w-24" x-text="rankings[2]?.title"></p>
+                </div>
+            </div>
+            
+            <!-- Full Ranking List -->
+            <div class="glass-card rounded-3xl p-4">
+                <h3 class="font-semibold mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Vollständige Rangliste
+                </h3>
+                
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    <template x-for="(film, index) in rankings" :key="film.id">
+                        <div class="rank-item flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                            <span class="w-8 text-center font-display font-bold"
+                                  :class="index === 0 ? 'text-yellow-400 text-xl' : index === 1 ? 'text-slate-400' : index === 2 ? 'text-orange-600' : 'text-slate-500'"
+                                  x-text="index + 1"></span>
+                            <img :src="tmdbBase + film.poster" class="w-12 h-16 rounded-lg object-cover">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium truncate" x-text="film.title"></p>
+                                <p class="text-xs text-slate-400" x-text="film.meta"></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold" x-text="film.score + ' Punkte'"></p>
+                                <p class="text-xs text-slate-500" x-text="film.wins + ' Siege / ' + film.losses + ' Niederlagen'"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-4 mt-6">
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <p class="text-2xl font-bold text-emerald-400" x-text="comparisons"></p>
+                    <p class="text-xs text-slate-400">Duelle</p>
+                </div>
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-400" x-text="rankings.length"></p>
+                    <p class="text-xs text-slate-400">Filme bewertet</p>
+                </div>
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <p class="text-2xl font-bold text-orange-400" x-text="Math.round((rankings[0]?.wins || 0) / comparisons * 100) + '%'"></p>
+                    <p class="text-xs text-slate-400">Siegrate #1</p>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex gap-4 mt-8">
+                <button @click="shareResults()" class="flex-1 py-3 rounded-xl glass-card text-slate-300 hover:text-white font-medium flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                    Teilen
+                </button>
+                <button @click="restart()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold hover:opacity-90">
+                    Neue Runde
+                </button>
+            </div>
+        </div>
+        
+        <!-- Categories -->
+        <div class="mt-8" x-show="mode === 'duel'">
+            <p class="text-xs text-slate-500 mb-3 text-center">Kategorie:</p>
+            <div class="flex flex-wrap justify-center gap-2">
+                <button @click="setCategory('all')" 
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        :class="category === 'all' ? 'bg-red-500 text-white' : 'glass-card text-slate-400 hover:text-white'">
+                    Alle
+                </button>
+                <button @click="setCategory('action')" 
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        :class="category === 'action' ? 'bg-red-500 text-white' : 'glass-card text-slate-400 hover:text-white'">
+                    Action
+                </button>
+                <button @click="setCategory('horror')" 
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        :class="category === 'horror' ? 'bg-red-500 text-white' : 'glass-card text-slate-400 hover:text-white'">
+                    Horror
+                </button>
+                <button @click="setCategory('drama')" 
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        :class="category === 'drama' ? 'bg-red-500 text-white' : 'glass-card text-slate-400 hover:text-white'">
+                    Drama
+                </button>
+                <button @click="setCategory('sneak')" 
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        :class="category === 'sneak' ? 'bg-red-500 text-white' : 'glass-card text-slate-400 hover:text-white'">
+                    Sneak 2026
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        function filmDuel() {
+            return {
+                tmdbBase: 'https://image.tmdb.org/t/p/w500',
+                mode: 'duel', // 'duel' or 'results'
+                category: 'all',
+                comparisons: 0,
+                targetComparisons: 10,
+                streak: 0,
+                selected: null,
+                
+                // Film Database
+                allFilms: [
+                    { id: 1, title: 'The Dark Knight', poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', meta: '2008 · Action · Crime', category: 'action' },
+                    { id: 2, title: 'Inception', poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg', meta: '2010 · Sci-Fi · Action', category: 'action' },
+                    { id: 3, title: 'Pulp Fiction', poster: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg', meta: '1994 · Crime · Drama', category: 'drama' },
+                    { id: 4, title: 'The Matrix', poster: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg', meta: '1999 · Sci-Fi · Action', category: 'action' },
+                    { id: 5, title: 'Goodfellas', poster: '/aKuFiU82s5ISJpGM9rRa9PJj3ji.jpg', meta: '1990 · Crime · Drama', category: 'drama' },
+                    { id: 6, title: 'The Shining', poster: '/9i3pN64pxTzRO2Uy2AhJ1pxDQBz.jpg', meta: '1980 · Horror · Drama', category: 'horror' },
+                    { id: 7, title: 'Get Out', poster: '/tFXcEccSQMfRkA3B05w9U8jmoQ.jpg', meta: '2017 · Horror · Thriller', category: 'horror' },
+                    { id: 8, title: 'Parasite', poster: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', meta: '2019 · Thriller · Drama', category: 'drama' },
+                    { id: 9, title: 'Mad Max: Fury Road', poster: '/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg', meta: '2015 · Action · Adventure', category: 'action' },
+                    { id: 10, title: 'Hereditary', poster: '/lHV8HHmJ2inPqAkOVH2JfOq5.jpg', meta: '2018 · Horror · Drama', category: 'horror' },
+                    // Sneak 2026 predictions
+                    { id: 11, title: 'Cold Storage', poster: '/wPBjoPOLlbr2BvZFmUUWYdwmF4o.jpg', meta: '2026 · Horror · Sci-Fi', category: 'sneak' },
+                    { id: 12, title: 'The Brutalist', poster: '/5TPP7b.jpg', meta: '2026 · Drama', category: 'sneak' },
+                    { id: 13, title: 'Mickey 17', poster: '/hIITm.jpg', meta: '2026 · Sci-Fi · Action', category: 'sneak' },
+                    { id: 14, title: 'A Working Man', poster: '/3ktdE.jpg', meta: '2026 · Action', category: 'sneak' },
+                    { id: 15, title: 'No Other Choice', poster: '/tImzXp37Q2RBcIdYS1HRdtffEaD.jpg', meta: '2026 · Thriller', category: 'sneak' },
+                ],
+                
+                films: [],
+                filmStats: {},
+                currentPair: [],
+                rankings: [],
+                usedPairs: new Set(),
+                
+                toast: { show: false, message: '' },
+                
+                init() {
+                    this.loadProgress();
+                    this.setCategory('all');
+                },
+                
+                loadProgress() {
+                    const saved = localStorage.getItem('film_duel_stats');
+                    if (saved) {
+                        this.filmStats = JSON.parse(saved);
+                    }
+                    const savedComp = localStorage.getItem('film_duel_comparisons');
+                    if (savedComp) {
+                        this.comparisons = parseInt(savedComp);
+                    }
+                },
+                
+                setCategory(cat) {
+                    this.category = cat;
+                    if (cat === 'all') {
+                        this.films = [...this.allFilms];
+                    } else {
+                        this.films = this.allFilms.filter(f => f.category === cat || f.category === 'sneak');
+                    }
+                    this.resetDuel();
+                    this.generatePair();
+                },
+                
+                resetDuel() {
+                    this.comparisons = 0;
+                    this.streak = 0;
+                    this.usedPairs.clear();
+                    this.filmStats = {};
+                    this.films.forEach(f => {
+                        this.filmStats[f.id] = { wins: 0, losses: 0, score: 1000 };
+                    });
+                },
+                
+                generatePair() {
+                    // Get films that haven't been compared much
+                    const sortedFilms = [...this.films].sort((a, b) => {
+                        const statsA = this.filmStats[a.id] || { wins: 0, losses: 0 };
+                        const statsB = this.filmStats[b.id] || { wins: 0, losses: 0 };
+                        const totalA = statsA.wins + statsA.losses;
+                        const totalB = statsB.wins + statsB.losses;
+                        return totalA - totalB;
+                    });
+                    
+                    // Pick two different films
+                    let filmA = sortedFilms[0];
+                    let filmB = sortedFilms[1];
+                    
+                    if (!filmA || !filmB) {
+                        this.calculateRankings();
+                        this.mode = 'results';
+                        return;
+                    }
+                    
+                    // Check if pair was used
+                    const pairKey = [filmA.id, filmB.id].sort().join('-');
+                    let attempts = 0;
+                    while (this.usedPairs.has(pairKey) && attempts < 10) {
+                        filmB = sortedFilms[Math.floor(Math.random() * sortedFilms.length)];
+                        if (filmB.id !== filmA.id) {
+                            const newKey = [filmA.id, filmB.id].sort().join('-');
+                            if (!this.usedPairs.has(newKey)) break;
+                        }
+                        attempts++;
+                    }
+                    
+                    if (filmA.id === filmB.id) {
+                        filmB = sortedFilms.find(f => f.id !== filmA.id) || filmA;
+                    }
+                    
+                    this.currentPair = [filmA, filmB];
+                    this.usedPairs.add([filmA.id, filmB.id].sort().join('-'));
+                },
+                
+                chooseFilm(winner) {
+                    const loser = this.currentPair.find(f => f.id !== winner.id);
+                    
+                    // Update stats
+                    if (!this.filmStats[winner.id]) {
+                        this.filmStats[winner.id] = { wins: 0, losses: 0, score: 1000 };
+                    }
+                    if (!this.filmStats[loser.id]) {
+                        this.filmStats[loser.id] = { wins: 0, losses: 0, score: 1000 };
+                    }
+                    
+                    this.filmStats[winner.id].wins++;
+                    this.filmStats[loser.id].losses++;
+                    
+                    // ELO-style scoring
+                    const expectedA = 1 / (1 + Math.pow(10, (this.filmStats[loser.id].score - this.filmStats[winner.id].score) / 400));
+                    const k = 32;
+                    this.filmStats[winner.id].score += k * (1 - expectedA);
+                    this.filmStats[loser.id].score -= k * (1 - expectedA);
+                    
+                    this.comparisons++;
+                    this.streak++;
+                    this.selected = winner.id;
+                    
+                    // Save progress
+                    localStorage.setItem('film_duel_stats', JSON.stringify(this.filmStats));
+                    localStorage.setItem('film_duel_comparisons', this.comparisons);
+                    
+                    // Show toast
+                    this.showToast(`${winner.title} gewinnt! 🔥`);
+                    
+                    // Next pair or results
+                    setTimeout(() => {
+                        this.selected = null;
+                        if (this.comparisons >= this.targetComparisons) {
+                            this.calculateRankings();
+                            this.mode = 'results';
+                        } else {
+                            this.generatePair();
+                        }
+                    }, 800);
+                },
+                
+                skipPair() {
+                    this.streak = 0;
+                    this.generatePair();
+                },
+                
+                calculateRankings() {
+                    this.rankings = Object.entries(this.filmStats)
+                        .map(([id, stats]) => {
+                            const film = this.allFilms.find(f => f.id === parseInt(id));
+                            return {
+                                ...film,
+                                ...stats
+                            };
+                        })
+                        .sort((a, b) => b.score - a.score);
+                },
+                
+                shareResults() {
+                    const top3 = this.rankings.slice(0, 3).map(f => f.title).join(', ');
+                    const text = `Meine Top 3 Filme nach ${this.comparisons} Duelle: ${top3}`;
+                    
+                    if (navigator.share) {
+                        navigator.share({ title: 'Meine Film-Rangliste', text });
+                    } else {
+                        navigator.clipboard.writeText(text);
+                        this.showToast('In Zwischenablage kopiert!');
+                    }
+                },
+                
+                restart() {
+                    this.mode = 'duel';
+                    this.resetDuel();
+                    this.generatePair();
+                },
+                
+                showToast(msg) {
+                    this.toast = { show: true, message: msg };
+                    setTimeout(() => this.toast.show = false, 1500);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
