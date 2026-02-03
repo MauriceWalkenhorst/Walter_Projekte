@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekt-Status: Walter & Maurice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="p-4 md:p-8" x-data="projectTracker()">
+
+    <div class="max-w-3xl mx-auto">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-800">Projekt-Status 🚀</h1>
+            <p class="text-slate-500 mt-2">Fortschritt unserer gemeinsamen Einrichtung & Entwicklung</p>
+        </div>
+
+        <!-- Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-sm text-slate-400 font-medium uppercase">Erledigt</div>
+                <div class="text-3xl font-bold text-emerald-500" x-text="completedCount"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-sm text-slate-400 font-medium uppercase">In Arbeit</div>
+                <div class="text-3xl font-bold text-blue-500" x-text="inProgressCount"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-sm text-slate-400 font-medium uppercase">Sub-Agents</div>
+                <div class="text-3xl font-bold text-purple-500" x-text="subAgentCount"></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="text-sm text-slate-400 font-medium uppercase">Offen</div>
+                <div class="text-3xl font-bold text-slate-400" x-text="pendingCount"></div>
+            </div>
+        </div>
+
+        <!-- Sub-Agent Monitor (Visible only if agents active) -->
+        <template x-if="subAgentCount > 0">
+            <div class="mb-8 bg-purple-900/5 border border-purple-200 rounded-2xl p-6">
+                <h2 class="text-sm font-black text-purple-800 uppercase tracking-widest mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full animate-ping mr-2"></span>
+                    Aktive Sub-Agenten (Hintergrund-Tasks)
+                </h2>
+                <div class="space-y-3">
+                    <template x-for="agent in subAgents" :key="agent.id">
+                        <div class="bg-white border border-purple-100 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                            <div>
+                                <div class="font-bold text-slate-800" x-text="agent.task"></div>
+                                <div class="text-xs text-slate-500" x-text="'Modell: ' + agent.model"></div>
+                            </div>
+                            <div class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded border border-purple-100" x-text="agent.status"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!-- Task List -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="divide-y divide-slate-100">
+                <template x-for="task in tasks" :key="task.id">
+                    <div class="p-5 flex items-start space-x-4 hover:bg-slate-50 transition-colors">
+                        
+                        <!-- Icon/Status -->
+                        <div class="flex-shrink-0 mt-1">
+                            <template x-if="task.status === 'done'">
+                                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </template>
+                            <template x-if="task.status === 'wip'">
+                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center animate-pulse">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </div>
+                            </template>
+                            <template x-if="task.status === 'pending'">
+                                <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                                    <div class="w-2 h-2 rounded-full bg-current"></div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="font-semibold text-slate-800" x-text="task.title"></h3>
+                                <span class="text-xs font-medium px-2 py-1 rounded-md" 
+                                      :class="{
+                                          'bg-emerald-50 text-emerald-700': task.status === 'done',
+                                          'bg-blue-50 text-blue-700': task.status === 'wip',
+                                          'bg-slate-100 text-slate-500': task.status === 'pending'
+                                      }"
+                                      x-text="getStatusLabel(task.status)"></span>
+                            </div>
+                            <p class="text-sm text-slate-500" x-text="task.desc"></p>
+                            
+                            <!-- Sub-items if any -->
+                            <template x-if="task.subitems">
+                                <ul class="mt-3 space-y-1">
+                                    <template x-for="item in task.subitems">
+                                        <li class="text-xs text-slate-400 flex items-center">
+                                            <span class="w-1 h-1 rounded-full bg-slate-300 mr-2"></span>
+                                            <span x-text="item"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+
+                            <!-- Developer Comments -->
+                            <template x-if="task.comments">
+                                <div class="mt-4 bg-amber-50 border-l-4 border-amber-300 p-3 rounded-r-md">
+                                    <div class="text-xs font-bold text-amber-800 uppercase mb-1">Walter's Notizen</div>
+                                    <p class="text-sm text-amber-900 italic" x-text="task.comments"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function projectTracker() {
+            return {
+                subAgents: [
+                    // Beispiel: { id: 1, task: 'Dashboard UI Refactoring', model: 'Claude 3.5 Sonnet', status: 'Running' }
+                ],
+                tasks: [
+                    {
+                        id: 1,
+                        title: 'Kommunikation einrichten',
+                        desc: 'Verbindung über Telegram herstellen und WhatsApp deaktivieren.',
+                        status: 'done',
+                        subitems: ['Telegram Bot Token gesetzt', 'WhatsApp Plugin deaktiviert', 'Allowlist konfiguriert'],
+                        comments: 'Die Umstellung auf Telegram lief reibungslos. WhatsApp ist komplett deaktiviert, um Ressourcen zu sparen. Die Latenz ist minimal.'
+                    },
+                    {
+                        id: 2,
+                        title: 'Bildgenerierung',
+                        desc: 'Fähigkeit, Bilder zu erstellen (Walter Mitty Demo).',
+                        status: 'done',
+                        subitems: ['Gemini Image Model integriert', 'Bild erstellt & gesendet'],
+                        comments: 'Wir nutzen das "Gemini Flash Image" Modell – das ist schnell und kosteneffizient. Das Testbild (Walter Mitty) wurde erfolgreich generiert.'
+                    },
+                    {
+                        id: 3,
+                        title: 'Wetter-Infos',
+                        desc: 'Aktuelle Wetterdaten und Vorhersagen abrufen.',
+                        status: 'done',
+                        subitems: ['wttr.in Integration', 'Berlin & Dortmund getestet'],
+                        comments: 'Kein API-Key nötig, wir nutzen wttr.in. Funktioniert zuverlässig für jede Stadt.'
+                    },
+                    {
+                        id: 4,
+                        title: 'Schichtplan-Integration',
+                        desc: 'Anbindung an Quinyx Kalender (WebCal).',
+                        status: 'done',
+                        subitems: ['WebCal URL geparst', 'Datenstruktur extrahiert'],
+                        comments: 'Statt Google Calendar nutzen wir direkt den ICS-Feed von Quinyx. Das spart den komplexen OAuth-Login und ist direkter. Die Daten werden live geparst.'
+                    },
+                    {
+                        id: 5,
+                        title: 'Schichtplan Dashboard',
+                        desc: 'Visuelle Übersicht der Schichten als Webanwendung.',
+                        status: 'done',
+                        subitems: ['HTML/Tailwind Design', 'Logik für "Kommende Schichten"', 'Datei generiert & gesendet'],
+                        comments: 'Das Dashboard ist eine Standalone-HTML-Datei. Sie läuft komplett im Browser, ohne dass ein Server im Hintergrund laufen muss.'
+                    },
+                    {
+                        id: 6,
+                        title: 'Projekt-Status Tracker',
+                        desc: 'Übersicht über den Fortschritt unserer Aufgaben.',
+                        status: 'done',
+                        subitems: ['Dashboard erstellt', 'Kommentar-Funktion hinzugefügt'],
+                        comments: 'Du siehst gerade das Update: Ich habe eine Sektion für technische Notizen und Kommentare ergänzt, wie gewünscht.'
+                    },
+                    {
+                        id: 7,
+                        title: 'Erinnerungen & Automatisierung',
+                        desc: 'Automatische Benachrichtigungen vor Schichtbeginn.',
+                        status: 'pending',
+                        subitems: ['Cronjobs einrichten', 'Push-Nachrichten via Telegram'],
+                        comments: 'Nächster Schritt: Ich werde einen Hintergrund-Job (Cron) einrichten, der täglich prüft, ob morgen eine Schicht ansteht, und dich benachrichtigt.'
+                    }
+                ],
+
+                get completedCount() { return this.tasks.filter(t => t.status === 'done').length },
+                get inProgressCount() { return this.tasks.filter(t => t.status === 'wip').length },
+                get subAgentCount() { return this.subAgents.length },
+                get pendingCount() { return this.tasks.filter(t => t.status === 'pending').length },
+
+                getStatusLabel(status) {
+                    const labels = { 'done': 'Erledigt', 'wip': 'In Arbeit', 'pending': 'Geplant' };
+                    return labels[status];
+                }
+            }
+        }
+    </script>
+</body>
+</html>
