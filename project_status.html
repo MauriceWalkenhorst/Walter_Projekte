@@ -142,14 +142,12 @@
     <script>
         function projectTracker() {
             return {
-                subAgents: [
-                    { id: 1, task: 'Sneak v2 Finalisierung', model: 'Gemini 3 Pro', status: '65%', desc: 'Aktualisiere Filmdaten & Teste Email-Versand.' }
-                ],
+                subAgents: [],
                 tasks: [
                     { id: 1, title: 'Kabel-Schrott Dashboard', subitems: ['Pott-Preise', 'Mobile-UI'], status: 'done', comments: 'Spezialisierter Rechner für Dortmund/Bochum ist live.' },
                     { id: 2, title: 'ETF Dashboard v2', subitems: ['Walton-Check', 'Charts'], status: 'done', comments: 'Finanzen einfach erklärt für Einsteiger.' },
                     { id: 3, title: 'Master Dashboard (Launcher)', subitems: ['Live-Shift', 'App-Look'], status: 'done', comments: 'Zentraler Einstiegspunkt für alle Walter-Tools.' },
-                    { id: 4, title: 'Sneak Prognose v2', subitems: ['Letterboxd-UI', 'Firestore'], status: 'pending', comments: 'Wird aktuell von Gemini Pro im Hintergrund finalisiert.' }
+                    { id: 4, title: 'Sneak Prognose v2', subitems: ['Letterboxd-Look', 'KW 07 Update'], status: 'done', comments: 'Gemini Pro hat die Filmdaten für Cold Storage & No Other Choice finalisiert.' }
                 ],
                 get subAgentCount() { return this.subAgents.length }
             }
