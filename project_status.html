@@ -142,7 +142,9 @@
     <script>
         function projectTracker() {
             return {
-                subAgents: [],
+                subAgents: [
+                    { id: 1, task: 'Sneak v2 Core Refactor', model: 'Gemini 3 Pro', status: '15%', desc: 'Initialisiere Admin-Login-Logik & Layout-Struktur.' }
+                ],
                 tasks: [
                     { id: 1, title: 'Kabel-Schrott Dashboard', subitems: ['Pott-Preise', 'Mobile-UI'], status: 'done', comments: 'Spezialisierter Rechner für Dortmund/Bochum ist live.' },
                     { id: 2, title: 'ETF Dashboard v2', subitems: ['Walton-Check', 'Charts'], status: 'done', comments: 'Finanzen einfach erklärt für Einsteiger.' },
