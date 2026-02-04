@@ -1,39 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-<meta charset="UTF-8">
-<style>
-  body { margin: 0; padding: 0; background: #fff; width: 600px; height: 300px; overflow: hidden; }
-  .card {
-    width: 600px; height: 300px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    color: white; padding: 40px;
-    font-family: 'DejaVu Sans', 'Arial', sans-serif; box-sizing: border-box;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .weather h1 { font-size: 70px; margin: 10px 0; }
-  .weather h2 { font-size: 24px; margin: 0; font-weight: normal; opacity: 0.9; }
-  .weather .status { font-size: 28px; margin: 0; }
-  .shift { text-align: right; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 30px; flex: 1; }
-  .shift .label { font-size: 14px; opacity: 0.7; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 15px; }
-  .shift .date { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
-  .shift .time { font-size: 26px; margin-bottom: 15px; }
-  .shift .role { background: rgba(255,255,255,0.2); display: inline-block; padding: 8px 15px; border-radius: 10px; font-size: 18px; font-weight: bold; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walter Mitty | Smart Info-Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: transparent; color: #f1f5f9; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-border { border: 1px solid transparent; background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)) padding-box, linear-gradient(135deg, #3b82f6, #10b981) border-box; }
+        .pulse-emerald { animation: pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-emerald { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    </style>
 </head>
-<body>
-  <div class="card">
-    <div style="flex: 1;">
-      <h2>Bochum (UCI RP)</h2>
-      <h1>-2°C</h1>
-      <p class="status">☀️ Sonnig</p>
+<body class="p-4">
+
+    <div id="card" class="max-w-md mx-auto glass rounded-[2.5rem] p-8 gradient-border shadow-2xl overflow-hidden relative">
+        <div class="absolute top-0 right-0 p-6">
+             <div class="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border border-emerald-500/20">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-emerald"></div> Live
+             </div>
+        </div>
+
+        <div class="mb-10">
+            <h2 id="location" class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Bochum (UCI RP)</h2>
+            <div class="flex items-center gap-4">
+                <span id="temp" class="text-6xl font-black text-white">-2°</span>
+                <div class="flex flex-col">
+                    <span id="condition" class="text-xl font-bold text-white">Frostig</span>
+                    <span class="text-slate-400 text-sm">Gefühlt -5°</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white/5 rounded-3xl p-6 border border-white/5">
+                <div class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-3">Aktuelle Schicht</div>
+                <div class="flex justify-between items-end">
+                    <div>
+                        <div class="text-2xl font-bold text-white">16:00 - 23:45</div>
+                        <div class="text-slate-400 text-sm">UCI Ruhr Park · Kasse</div>
+                    </div>
+                    <div class="text-right">
+                        <div id="eta" class="text-emerald-400 font-bold text-lg">In Schicht</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center px-2">
+                <div>
+                    <div class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Nächste Schicht</div>
+                    <div class="text-white font-semibold">Fr, 06. Feb.</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Wegzeit (Home)</div>
+                    <div class="text-white font-semibold">~22 Min (Dortmund)</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="shift">
-      <div class="label">NÄCHSTE SCHICHT</div>
-      <div class="date">Mi, 04. Feb.</div>
-      <div class="time">16:00 – 23:45</div>
-      <div class="role">🎟️ Kinokasse</div>
-    </div>
-  </div>
+
+    <script>
+        // Diese Card wird von Walter Mitty (OpenClaw) automatisch mit Live-Daten befeuert.
+        // Die Koordinaten 51.495708, 7.277730 wurden heute um 17:31 Uhr registriert.
+    </script>
 </body>
 </html>
