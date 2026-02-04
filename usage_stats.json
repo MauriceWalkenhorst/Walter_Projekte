@@ -1,0 +1,10 @@
+{
+  "total": "2,84",
+  "inputTokens": 845000,
+  "outputTokens": 18500,
+  "lastUpdate": "2026-02-04T21:05:00Z",
+  "models": [
+    { "name": "Gemini 1.5 Pro", "input": 450000, "output": 12000, "cost": "2,15" },
+    { "name": "Gemini 1.5 Flash", "input": 395000, "output": 6500, "cost": "0,69" }
+  ]
+}
