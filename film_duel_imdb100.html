@@ -384,7 +384,7 @@
             }
         }
         
-        /* ===== MOBILE STYLES ===== */
+        /* ===== MOBILE TINDER-STYLE CARD STACK ===== */
         @media (max-width: 640px) {
             body { 
                 height: 100vh; 
@@ -403,27 +403,54 @@
                 flex-direction: column; 
             }
             
+            /* Tinder-Style Card Stack Container */
             .duel-container { 
                 flex: 1; 
-                display: flex; 
-                flex-direction: column;
-                gap: 0.75rem; 
-                min-height: 0;
                 position: relative;
-            }
-            
-            .film-card { 
-                flex: 1;
-                min-height: 0;
                 display: flex;
-                flex-direction: column;
-                border-radius: 1.25rem;
+                align-items: center;
+                justify-content: center;
+                min-height: 0;
+                perspective: 1000px;
             }
             
-            .film-card .aspect-container {
-                flex: 1;
+            /* Card Stack Positioning */
+            .film-card { 
+                position: absolute;
+                width: 85%;
+                max-width: 340px;
+                height: 65vh;
+                max-height: 550px;
+                border-radius: 1.5rem;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                will-change: transform;
+            }
+            
+            /* Obere Karte (aktiv) */
+            .film-card[data-film="A"] {
+                z-index: 10;
+                transform: scale(1);
+            }
+            
+            /* Untere Karte (sichtbar im Hintergrund) */
+            .film-card[data-film="B"] {
+                z-index: 5;
+                transform: scale(0.92) translateY(25px);
+                opacity: 0.7;
+            }
+            
+            /* Wenn B ausgewählt wird, tauschen die Karten */
+            .film-card.swipe-left[data-film="A"],
+            .film-card.swipe-right[data-film="A"] {
+                z-index: 10;
+            }
+            
+            .aspect-container {
+                width: 100%;
+                height: 100%;
                 position: relative;
-                min-height: 0;
+                border-radius: 1.5rem;
+                overflow: hidden;
             }
             
             .film-card img { 
@@ -434,38 +461,48 @@
             }
             
             .film-info {
-                padding: 1rem;
-                background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+                padding: 1.25rem;
+                background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
             }
             
+            /* VS Badge - Unten mittig */
             .vs-badge { 
-                position: fixed;
-                top: 50%;
+                position: absolute;
+                bottom: 18%;
                 left: 50%;
-                transform: translate(-50%, -50%);
-                width: 4rem; 
-                height: 4rem; 
-                z-index: 50;
+                transform: translateX(-50%);
+                width: 3.5rem; 
+                height: 3.5rem; 
+                z-index: 20;
                 box-shadow: 0 0 30px rgba(234, 179, 8, 0.4);
             }
             
+            /* Swipe Instructions */
             .swipe-hint {
                 position: absolute;
-                bottom: 0.5rem;
+                bottom: 6%;
                 left: 0; 
                 right: 0;
                 text-align: center;
-                font-size: 0.65rem;
-                color: rgba(255,255,255,0.4);
+                font-size: 0.75rem;
+                color: rgba(255,255,255,0.5);
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
+                letter-spacing: 0.15em;
                 pointer-events: none;
+                z-index: 30;
             }
             
             .skip-btn {
-                padding: 1rem;
+                position: absolute;
+                bottom: 2%;
+                left: 50%;
+                transform: translateX(-50%);
+                width: auto;
+                min-width: 200px;
+                padding: 0.875rem 1.5rem;
                 font-size: 0.875rem;
                 border-radius: 1rem;
+                z-index: 30;
             }
             
             .mobile-header h1 {
@@ -474,6 +511,30 @@
             
             .progress-step {
                 height: 0.375rem;
+            }
+            
+            /* Swipe Indicators auf dem Screen */
+            .swipe-indicator {
+                position: fixed;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 5rem;
+                font-weight: 900;
+                opacity: 0;
+                transition: opacity 0.2s;
+                pointer-events: none;
+                z-index: 100;
+                text-shadow: 0 0 30px rgba(0,0,0,0.9);
+            }
+            
+            .swipe-indicator.left {
+                left: 5%;
+                color: #ef4444;
+            }
+            
+            .swipe-indicator.right {
+                right: 5%;
+                color: #22c55e;
             }
         }
         
@@ -664,7 +725,7 @@
                 </div>
                 
                 <!-- VS Badge -->
-                <div class="vs-badge rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/40 border-2 border-black flex-shrink-0">
+                <div class="vs-badge rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/40 border-2 border-black flex-shrink-0 lg:static lg:transform-none">
                     <span class="font-black text-black text-sm lg:text-xl">VS</span>
                 </div>
                 
@@ -701,7 +762,10 @@
             </div>
             
             <!-- Swipe Hint (Mobile only) -->
-            <div class="swipe-hint lg:hidden">Tippe auf einen Film oder wische</div>
+            <div class="swipe-hint lg:hidden">
+                <span class="text-red-400">← Links</span> für oberen Film · 
+                <span class="text-green-400">Rechts →</span> für unteren Film
+            </div>
             
             <!-- Desktop Instructions -->
             <div class="hidden lg:block text-center mt-6 text-slate-400 text-sm">
@@ -940,24 +1004,86 @@
                     if (!container || !window.Hammer) return;
                     
                     this.hammer = new Hammer(container);
+                    this.hammer.get('pan').set({ direction: Hammer.DIRECTION_HORIZONTAL, threshold: 10 });
                     this.hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
                     
-                    this.hammer.on('swipeleft', (e) => {
-                        const filmA = document.getElementById('filmA');
-                        const rect = filmA.getBoundingClientRect();
-                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
+                    const filmA = document.getElementById('filmA');
+                    let isDragging = false;
+                    let startX = 0;
+                    let currentX = 0;
+                    
+                    // Pan (Drag) Events für visuelles Feedback
+                    this.hammer.on('panstart', (e) => {
+                        if (this.selected) return;
+                        isDragging = true;
+                        startX = 0;
+                        filmA.style.transition = 'none';
+                    });
+                    
+                    this.hammer.on('panmove', (e) => {
+                        if (!isDragging || this.selected) return;
+                        currentX = e.deltaX;
+                        const rotation = currentX * 0.1;
+                        filmA.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+                        
+                        // Zeige Swipe-Indikatoren
+                        if (currentX < -50) {
                             this.showSwipeIndicator('left');
-                            this.chooseFilm(this.currentPair[0]);
+                        } else if (currentX > 50) {
+                            this.showSwipeIndicator('right');
                         }
                     });
                     
-                    this.hammer.on('swiperight', (e) => {
-                        const filmB = document.getElementById('filmB');
-                        const rect = filmB.getBoundingClientRect();
-                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
-                            this.showSwipeIndicator('right');
-                            this.chooseFilm(this.currentPair[1]);
+                    this.hammer.on('panend', (e) => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        filmA.style.transition = 'transform 0.3s ease';
+                        
+                        const threshold = 100; // Mindestens 100px zum Swipen
+                        
+                        if (currentX < -threshold) {
+                            // Nach links geswiped = Film A gewinnt
+                            filmA.style.transform = 'translateX(-150%) rotate(-30deg)';
+                            setTimeout(() => {
+                                filmA.style.transform = '';
+                                this.chooseFilm(this.currentPair[0]);
+                            }, 200);
+                        } else if (currentX > threshold) {
+                            // Nach rechts geswiped = Film B gewinlt
+                            filmA.style.transform = 'translateX(150%) rotate(30deg)';
+                            setTimeout(() => {
+                                filmA.style.transform = '';
+                                this.chooseFilm(this.currentPair[1]);
+                            }, 200);
+                        } else {
+                            // Zurück zur Mitte
+                            filmA.style.transform = '';
                         }
+                        
+                        currentX = 0;
+                    });
+                    
+                    // Fallback: Swipe Events
+                    this.hammer.on('swipeleft', (e) => {
+                        if (this.selected) return;
+                        this.showSwipeIndicator('left');
+                        filmA.style.transition = 'transform 0.3s ease';
+                        filmA.style.transform = 'translateX(-150%) rotate(-30deg)';
+                        setTimeout(() => {
+                            filmA.style.transform = '';
+                            this.chooseFilm(this.currentPair[0]);
+                        }, 300);
+                    });
+                    
+                    this.hammer.on('swiperight', (e) => {
+                        if (this.selected) return;
+                        this.showSwipeIndicator('right');
+                        filmA.style.transition = 'transform 0.3s ease';
+                        filmA.style.transform = 'translateX(150%) rotate(30deg)';
+                        setTimeout(() => {
+                            filmA.style.transform = '';
+                            this.chooseFilm(this.currentPair[1]);
+                        }, 300);
                     });
                 },
                 
@@ -1085,6 +1211,15 @@
                     
                     // Haptisches Feedback
                     if (navigator.vibrate) navigator.vibrate(50);
+                    
+                    // Karten-Animation zurücksetzen (Mobile)
+                    if (window.innerWidth <= 640) {
+                        const filmA = document.getElementById('filmA');
+                        if (filmA) {
+                            filmA.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                            filmA.style.transform = '';
+                        }
+                    }
                     
                     // VERBESSERTES ELO-SYSTEM
                     const winnerStats = this.filmStats[winner.id];
