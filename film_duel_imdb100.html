@@ -56,18 +56,53 @@
         
         [x-cloak] { display: none !important; }
         
-        /* Mobile fixes for tall posters */
+        /* Swipe Optimization & Layout */
         @media (max-width: 640px) {
             body { height: 100vh; overflow: hidden; position: fixed; width: 100%; }
             .min-h-screen { height: 100vh; padding-top: 3.5rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; }
-            .duel-container { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
-            .film-card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+            .duel-container { 
+                flex: 1; 
+                display: flex; 
+                flex-direction: row; /* Horizontal for swiping/side-by-side */
+                gap: 0; 
+                min-height: 0;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
+            .duel-container::-webkit-scrollbar { display: none; }
+            
+            .film-card { 
+                flex: 0 0 100%; /* Each card takes full width */
+                scroll-snap-align: center;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                padding: 0 1rem;
+            }
             .film-card .aspect-\[2\/3\] { flex: 1; width: 100%; aspect-ratio: auto; min-height: 0; }
-            .film-card img { height: 100%; object-position: center; }
-            .vs-badge { width: 3.5rem; height: 3.5rem; border-width: 2px; }
-            header { margin-bottom: 0.25rem; }
-            .mt-6 { margin-top: 0.5rem; }
-            .mt-6 button { py: 2; }
+            .film-card img { height: 100%; object-position: center; border-radius: 1.5rem; }
+            
+            .vs-badge { 
+                top: auto;
+                bottom: 2rem;
+                left: 50%;
+                width: 3.5rem; 
+                height: 3.5rem; 
+                z-index: 50;
+            }
+            
+            .swipe-hint {
+                position: absolute;
+                bottom: 1rem;
+                left: 0; right: 0;
+                text-align: center;
+                font-size: 10px;
+                color: rgba(255,255,255,0.4);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                pointer-events: none;
+            }
         }
     </style>
 </head>
@@ -94,8 +129,11 @@
         </header>
         
         <!-- MODE: DUEL -->
-        <div x-show="mode === 'duel'" x-cloak class="flex-1 flex flex-col justify-center">
+        <div x-show="mode === 'duel'" x-cloak class="flex-1 flex flex-col justify-center relative">
             <div class="duel-container relative">
+                <!-- Swipe Hint (Mobile only) -->
+                <div class="swipe-hint block md:hidden">← Wische für Film B | Film A →</div>
+                
                 <!-- VS Badge -->
                 <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center vs-badge shadow-2xl shadow-orange-500/40 border-2 border-black">
                     <span class="font-black text-black text-sm">VS</span>
