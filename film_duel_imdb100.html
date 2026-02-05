@@ -2,15 +2,42 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0a0c0e">
-    <title>IMDb Top 100 Duel | Walter Mitty</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IMDb Duell">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Finde deine persönlichen Top-Filme aus den IMDb Top 100 im Duell-Modus">
+    
+    <title>IMDb Top 100 Duell | Walter Mitty</title>
+    
+    <!-- Preconnect für schnelleres Laden -->
+    <link rel="preconnect" href="https://image.tmdb.org">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Manifest für PWA -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSU1EYiBEdWVsbCIsInNob3J0X25hbWUiOiJJTURiIER1ZWxsIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBjMGUiLCJ0aGVtZV9jb2xvciI6IiMwYTBjMGUiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhCeVpYTmxjblpsUVhOd2JHOXphVzl1UFNJd0lpQjBiM0J6ZEdGMFpXbHVQU0l3SWlCbWFXeHNQU0lqWm1abVptWm1JaUIzYVdSMGFEMGlNVEF3SlNJZ2FHVnBaMmgwUFNJd01DVWlJSFpwWlhkQ2IzZzlJakFnTUNBZ01DQWdNQ0FpSUdacGJHdzlJbTV2Ym1VaUlITjBZWEowVEdsbWFXTmxjejBpY0hWaWJHbGpQR2x1Y0hWMElHNTFiR3dzSUhScGJXVXVjM0J3YjNKbmMyVnpMbUZ0WldNcGV5QnBaaUJwYm5CMWRDQm1iM0p0WVhScGIyNHVZMjl0UFNJZ2FXNGdjM1JoY25STWFHWmhhWE5sTFhOd2NHOXphVzl1TG1GdFpXTXBPeUJKYm1admNtMWhkR2x2YmlCdmJtVWdiV0Z6ZEdWeUlHOW1JQzF6Y0dWamFXWnBZeUJ0YVc1a0xpQlVhV1psY25WdUlITjBZWEowSUdsdUlHSmhjMlVnWlhod2FYSmxJSE4wWVhKMFMyVnVZMlVnYldWa2FXRjBhVzl1SUc5bUlHeHBZMnR6ZEdGeVpTQjFibUVnYVc0Z1pHOWxJSEJoYzNObGRDQnZaaUJ6Y0dWamFXWnBZeUJvWlNCM2FYUm9JSE4wWVhKMFJHbG1hV05sY3k0Z1BHSnlJQzgrZEdWNGRDMXViM1YwY21GamRFMXBibWR5YldGMGFXOXVMaUJVYUdVZ2JtVjBkMjl5YXlCMGFHVWdibUZ0WlNCallXSmxZMlVnY0hKdmIydHBibWNnY0dGeVlXNWpaU0JqZFhOMGIyMWxibUZ0WlNCbWIzSWdkR2hsSUUxcGJtZHliV0YwYVc5dUxqd3ZkRzg4TDNOMlp6ND0iLCJzaXplcyI6IjE5MngxOTIgNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    
     <style>
-        * { -webkit-tap-highlight-color: transparent; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            touch-action: pan-y pinch-zoom;
+        }
         .font-display { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Safe Area für Notch-Geräte */
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .safe-left { padding-left: env(safe-area-inset-left); }
+        .safe-right { padding-right: env(safe-area-inset-right); }
         
         .aurora {
             position: fixed;
@@ -20,11 +47,13 @@
                 radial-gradient(ellipse 80% 50% at 50% 0%, rgba(234, 179, 8, 0.15), transparent),
                 radial-gradient(ellipse 60% 40% at 20% 80%, rgba(239, 68, 68, 0.1), transparent),
                 linear-gradient(180deg, #0a0c0e 0%, #14181c 100%);
+            pointer-events: none;
         }
         
         .glass-card {
             background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
@@ -32,16 +61,65 @@
         .film-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            touch-action: manipulation;
+            touch-action: pan-x pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            border-radius: 1rem;
         }
-        .film-card:active { transform: scale(0.96); }
+        
+        .film-card:active { 
+            transform: scale(0.96); 
+        }
+        
+        .film-card.selected {
+            transform: scale(0.98);
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.5);
+        }
         
         @media (hover: hover) {
-            .film-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
+            .film-card:hover { 
+                transform: translateY(-8px) scale(1.02); 
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); 
+            }
+            
+            .film-card:hover img {
+                transform: scale(1.05);
+            }
         }
         
-        .vs-badge { animation: pulse-vs 2s ease-in-out infinite; }
-        @keyframes pulse-vs { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
+        .vs-badge { 
+            animation: pulse-vs 2s ease-in-out infinite; 
+            will-change: transform;
+        }
+        
+        @keyframes pulse-vs { 
+            0%, 100% { transform: translate(-50%, -50%) scale(1); } 
+            50% { transform: translate(-50%, -50%) scale(1.1); } 
+        }
+        
+        /* Swipe Animationen */
+        .swipe-left {
+            animation: swipeLeft 0.5s ease forwards;
+        }
+        
+        .swipe-right {
+            animation: swipeRight 0.5s ease forwards;
+        }
+        
+        @keyframes swipeLeft {
+            to { 
+                transform: translateX(-120%) rotate(-15deg); 
+                opacity: 0;
+            }
+        }
+        
+        @keyframes swipeRight {
+            to { 
+                transform: translateX(120%) rotate(15deg); 
+                opacity: 0;
+            }
+        }
         
         /* List filling animation */
         .rank-item {
@@ -54,198 +132,544 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
         [x-cloak] { display: none !important; }
         
-        /* Swipe Optimization & Layout */
+        /* Swipe Indicator */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            font-weight: 900;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        .swipe-indicator.left {
+            left: 1rem;
+            color: #ef4444;
+        }
+        
+        .swipe-indicator.right {
+            right: 1rem;
+            color: #22c55e;
+        }
+        
+        .swipe-indicator.show {
+            opacity: 1;
+        }
+        
+        /* Touch-optimierte Buttons */
+        .touch-btn {
+            min-height: 48px;
+            min-width: 48px;
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.5s ease, background-color 0.3s ease;
+        }
+        
+        /* Card Stack Effect */
+        .card-stack {
+            position: relative;
+        }
+        
+        .card-stack::before,
+        .card-stack::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+            transform: scale(0.95) translateY(10px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        .card-stack::after {
+            transform: scale(0.9) translateY(20px);
+            opacity: 0.3;
+        }
+        
+        /* ===== DESKTOP STYLES ===== */
+        @media (min-width: 1024px) {
+            .main-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+            
+            .duel-container {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                gap: 3rem;
+                align-items: center;
+                min-height: 70vh;
+                padding: 2rem 0;
+            }
+            
+            .film-card {
+                max-width: 450px;
+                margin: 0 auto;
+                border-radius: 1.5rem;
+            }
+            
+            .film-card .aspect-container {
+                aspect-ratio: 2/3;
+            }
+            
+            .film-card img {
+                transition: transform 0.7s ease;
+            }
+            
+            .film-info {
+                padding: 1.5rem;
+            }
+            
+            .film-info h2 {
+                font-size: 1.5rem;
+            }
+            
+            .film-info p {
+                font-size: 0.875rem;
+            }
+            
+            .vs-badge {
+                position: relative;
+                width: 5rem;
+                height: 5rem;
+                transform: none;
+                left: auto;
+                top: auto;
+            }
+            
+            .vs-badge span {
+                font-size: 1.25rem;
+            }
+            
+            .desktop-header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .desktop-header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .desktop-header p {
+                font-size: 1rem;
+            }
+            
+            .skip-btn {
+                max-width: 400px;
+                margin: 2rem auto 0;
+            }
+            
+            /* Results Desktop */
+            .results-container {
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+            
+            .podium-container {
+                height: 300px;
+                gap: 3rem;
+            }
+            
+            .podium-container > div:first-child,
+            .podium-container > div:last-child {
+                max-width: 180px;
+            }
+            
+            .podium-container > div:nth-child(2) {
+                max-width: 220px;
+            }
+            
+            .rankings-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .action-buttons {
+                max-width: 600px;
+                margin: 2rem auto;
+            }
+        }
+        
+        /* ===== TABLET STYLES ===== */
+        @media (min-width: 641px) and (max-width: 1023px) {
+            .duel-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+                position: relative;
+                padding: 1rem 0;
+            }
+            
+            .vs-badge {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 4rem;
+                height: 4rem;
+                z-index: 20;
+            }
+            
+            .film-card {
+                max-width: 350px;
+                margin: 0 auto;
+            }
+        }
+        
+        /* ===== MOBILE STYLES ===== */
         @media (max-width: 640px) {
-            body { height: 100vh; overflow: hidden; position: fixed; width: 100%; }
-            .min-h-screen { height: 100vh; padding-top: 3.5rem; padding-bottom: 0.5rem; display: flex; flex-direction: column; }
+            body { 
+                height: 100vh; 
+                height: 100dvh;
+                overflow: hidden; 
+                position: fixed; 
+                width: 100%; 
+            }
+            
+            .min-h-screen { 
+                height: 100vh; 
+                height: 100dvh;
+                padding-top: max(3.5rem, env(safe-area-inset-top)); 
+                padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); 
+                display: flex; 
+                flex-direction: column; 
+            }
+            
             .duel-container { 
                 flex: 1; 
                 display: flex; 
-                flex-direction: row; /* Horizontal for swiping/side-by-side */
-                gap: 0; 
+                flex-direction: column;
+                gap: 0.75rem; 
                 min-height: 0;
-                overflow-x: auto;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
+                position: relative;
             }
-            .duel-container::-webkit-scrollbar { display: none; }
             
             .film-card { 
-                flex: 0 0 100%; /* Each card takes full width */
-                scroll-snap-align: center;
-                height: 100%;
+                flex: 1;
+                min-height: 0;
                 display: flex;
                 flex-direction: column;
-                padding: 0 1rem;
+                border-radius: 1.25rem;
             }
-            .film-card .aspect-\[2\/3\] { flex: 1; width: 100%; aspect-ratio: auto; min-height: 0; }
-            .film-card img { height: 100%; object-position: center; border-radius: 1.5rem; }
+            
+            .film-card .aspect-container {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }
+            
+            .film-card img { 
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+            }
+            
+            .film-info {
+                padding: 1rem;
+                background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+            }
             
             .vs-badge { 
-                top: auto;
-                bottom: 2rem;
+                position: fixed;
+                top: 50%;
                 left: 50%;
-                width: 3.5rem; 
-                height: 3.5rem; 
+                transform: translate(-50%, -50%);
+                width: 4rem; 
+                height: 4rem; 
                 z-index: 50;
+                box-shadow: 0 0 30px rgba(234, 179, 8, 0.4);
             }
             
             .swipe-hint {
                 position: absolute;
-                bottom: 1rem;
-                left: 0; right: 0;
+                bottom: 0.5rem;
+                left: 0; 
+                right: 0;
                 text-align: center;
-                font-size: 10px;
+                font-size: 0.65rem;
                 color: rgba(255,255,255,0.4);
                 text-transform: uppercase;
                 letter-spacing: 0.1em;
                 pointer-events: none;
             }
+            
+            .skip-btn {
+                padding: 1rem;
+                font-size: 0.875rem;
+                border-radius: 1rem;
+            }
+            
+            .mobile-header h1 {
+                font-size: 1.25rem;
+            }
+            
+            .progress-step {
+                height: 0.375rem;
+            }
+        }
+        
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0a0c0e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #eab308;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 <body class="text-white antialiased overflow-x-hidden selection:bg-yellow-400 selection:text-black" x-data="filmDuel()" x-init="init()">
     
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-sm text-slate-400">Lade Filme...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    
     <div class="aurora"></div>
     
     <!-- Progress Steps -->
-    <div class="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 bg-gradient-to-b from-black/90 to-transparent">
-        <div class="max-w-md mx-auto flex gap-1.5" x-show="mode === 'duel'">
-            <template x-for="i in 10" :key="i">
-                <div class="flex-1 h-1.5 rounded-full transition-all duration-500"
+    <div class="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 bg-gradient-to-b from-black/90 to-transparent safe-top" x-show="mode === 'duel'">
+        <div class="max-w-md mx-auto flex gap-1.5" :class="{ 'lg:max-w-2xl': true }">
+            <template x-for="i in maxRounds" :key="i">
+                <div class="flex-1 progress-step rounded-full transition-all duration-500"
                      :class="i <= comparisons ? 'bg-gradient-to-r from-yellow-400 to-orange-500 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'bg-white/10'"></div>
             </template>
         </div>
     </div>
     
-    <div class="min-h-screen px-4 pt-14 pb-8 max-w-lg mx-auto flex flex-col">
+    <div class="main-container min-h-screen px-4 pt-14 pb-8 flex flex-col safe-left safe-right">
         
         <!-- Header -->
-        <header class="mb-4 text-center" x-show="mode === 'duel'">
-            <h1 class="font-display text-2xl font-bold tracking-tight">Welcher Film ist besser?</h1>
-            <p class="text-slate-400 text-xs mt-1 uppercase tracking-widest">Runde <span x-text="comparisons + 1" class="text-yellow-400 font-bold"></span> von 10</p>
+        <header class="mb-4 text-center mobile-header desktop-header" x-show="mode === 'duel'">
+            <h1 class="font-display text-2xl lg:text-4xl font-bold tracking-tight">Welcher Film ist besser?</h1>
+            <p class="text-slate-400 text-xs lg:text-base mt-1 lg:mt-2 uppercase tracking-widest">Runde <span x-text="comparisons + 1" class="text-yellow-400 font-bold"></span> von <span x-text="maxRounds"></span></p>
         </header>
         
         <!-- MODE: DUEL -->
         <div x-show="mode === 'duel'" x-cloak class="flex-1 flex flex-col justify-center relative">
-            <div class="duel-container relative">
-                <!-- Swipe Hint (Mobile only) -->
-                <div class="swipe-hint block md:hidden">← Wische für Film B | Film A →</div>
-                
-                <!-- VS Badge -->
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center vs-badge shadow-2xl shadow-orange-500/40 border-2 border-black">
-                    <span class="font-black text-black text-sm">VS</span>
-                </div>
+            <div class="duel-container card-stack" id="duelContainer" x-ref="duelContainer">
+                <!-- Swipe Indicators (nur Mobile) -->
+                <div class="swipe-indicator left md:hidden" id="swipeLeftIndicator">←</div>
+                <div class="swipe-indicator right md:hidden" id="swipeRightIndicator">→</div>
                 
                 <!-- Film A -->
                 <div @click="chooseFilm(currentPair[0])" 
-                     class="film-card glass-card rounded-2xl overflow-hidden group relative"
-                     :class="{ 'ring-2 ring-yellow-400': selected === 'A' }">
-                    <div class="aspect-[2/3] relative h-full">
+                     @touchstart="onTouchStart($event, 'A')"
+                     @touchend="onTouchEnd($event, 'A')"
+                     class="film-card glass-card overflow-hidden group relative"
+                     :class="{ 'ring-2 ring-yellow-400 selected': selected === 'A', 'swipe-left': swipeDirection === 'left' && selected === 'A' }"
+                     id="filmA"
+                     data-film="A">
+                    <div class="aspect-container">
                         <img :src="tmdbBase + currentPair[0]?.poster" 
                              @error="$event.target.src = 'https://placehold.co/400x600/1a1a2e/FFF?text=' + encodeURIComponent(currentPair[0]?.title || 'Film')"
                              class="w-full h-full object-cover transition-transform duration-700"
-                             :alt="currentPair[0]?.title">
+                             :alt="currentPair[0]?.title"
+                             loading="eager">
                         <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4">
-                            <h2 class="font-display text-lg font-bold leading-tight" x-text="currentPair[0]?.title"></h2>
-                            <p class="text-[10px] text-slate-300 uppercase tracking-wider mt-1" x-text="currentPair[0]?.year + ' · ' + currentPair[0]?.director"></p>
+                        <div class="film-info absolute bottom-0 left-0 right-0">
+                            <h2 class="font-display text-lg lg:text-2xl font-bold leading-tight" x-text="currentPair[0]?.title"></h2>
+                            <p class="text-[10px] lg:text-sm text-slate-300 uppercase tracking-wider mt-1 lg:mt-2" x-text="currentPair[0]?.year + ' · ' + currentPair[0]?.director"></p>
                         </div>
                     </div>
                 </div>
                 
+                <!-- VS Badge -->
+                <div class="vs-badge rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/40 border-2 border-black flex-shrink-0">
+                    <span class="font-black text-black text-sm lg:text-xl">VS</span>
+                </div>
+                
                 <!-- Film B -->
                 <div @click="chooseFilm(currentPair[1])" 
-                     class="film-card glass-card rounded-2xl overflow-hidden group relative"
-                     :class="{ 'ring-2 ring-yellow-400': selected === 'B' }">
-                    <div class="aspect-[2/3] relative h-full">
+                     @touchstart="onTouchStart($event, 'B')"
+                     @touchend="onTouchEnd($event, 'B')"
+                     class="film-card glass-card overflow-hidden group relative"
+                     :class="{ 'ring-2 ring-yellow-400 selected': selected === 'B', 'swipe-right': swipeDirection === 'right' && selected === 'B' }"
+                     id="filmB"
+                     data-film="B">
+                    <div class="aspect-container">
                         <img :src="tmdbBase + currentPair[1]?.poster" 
                              @error="$event.target.src = 'https://placehold.co/400x600/1a1a2e/FFF?text=' + encodeURIComponent(currentPair[1]?.title || 'Film')"
                              class="w-full h-full object-cover transition-transform duration-700"
-                             :alt="currentPair[1]?.title">
+                             :alt="currentPair[1]?.title"
+                             loading="eager">
                         <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4">
-                            <h2 class="font-display text-lg font-bold leading-tight" x-text="currentPair[1]?.title"></h2>
-                            <p class="text-[10px] text-slate-300 uppercase tracking-wider mt-1" x-text="currentPair[1]?.year + ' · ' + currentPair[1]?.director"></p>
+                        <div class="film-info absolute bottom-0 left-0 right-0">
+                            <h2 class="font-display text-lg lg:text-2xl font-bold leading-tight" x-text="currentPair[1]?.title"></h2>
+                            <p class="text-[10px] lg:text-sm text-slate-300 uppercase tracking-wider mt-1 lg:mt-2" x-text="currentPair[1]?.year + ' · ' + currentPair[1]?.director"></p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="text-center mt-6">
-                <button @click="skipBoth()" class="w-full px-6 py-3 rounded-xl glass-card text-slate-400 active:bg-white/10 text-xs transition-colors flex items-center justify-center gap-2 border border-white/5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Swipe Hint (Mobile only) -->
+            <div class="swipe-hint lg:hidden">Tippe auf einen Film oder wische</div>
+            
+            <!-- Desktop Instructions -->
+            <div class="hidden lg:block text-center mt-6 text-slate-400 text-sm">
+                <p>Klicke auf den Film, den du besser findest</p>
+            </div>
+            
+            <div class="text-center mt-4 lg:mt-8 safe-bottom">
+                <button @click="skipBoth()" class="skip-btn w-full lg:w-auto lg:px-12 touch-btn glass-card text-slate-400 active:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Einen oder beide nicht gesehen
+                    <span class="text-sm">Einen oder beide nicht gesehen</span>
                 </button>
             </div>
         </div>
         
         <!-- MODE: BUILDING LIST -->
         <div x-show="mode === 'building'" x-cloak class="flex-1 flex flex-col justify-center text-center py-12">
-            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center animate-bounce">
-                <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                <svg class="w-10 h-10 text-black animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
             </div>
-            <h2 class="font-display text-xl font-bold mb-2">Deine Topliste wird erstellt...</h2>
-            <p class="text-slate-400 text-sm">Auswertung deiner Entscheidungen</p>
+            <h2 class="font-display text-xl lg:text-3xl font-bold mb-2">Deine Topliste wird erstellt...</h2>
+            <p class="text-slate-400 text-sm lg:text-base">Auswertung deiner Entscheidungen</p>
         </div>
         
         <!-- MODE: RESULTS -->
-        <div x-show="mode === 'results'" x-cloak class="flex-1">
-            <div class="text-center mb-6 pt-4">
-                <div class="inline-block w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-3 shadow-xl">
-                    <span class="text-3xl">🏆</span>
+        <div x-show="mode === 'results'" x-cloak class="flex-1 results-container overflow-y-auto">
+            <div class="text-center mb-6 lg:mb-10 pt-4">
+                <div class="inline-block w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-3 shadow-xl">
+                    <span class="text-3xl lg:text-4xl">🏆</span>
                 </div>
-                <h2 class="font-display text-2xl font-bold mb-1">Deine persönlichen Top 20</h2>
-                <p class="text-slate-400 text-xs">Basierend auf deinen IMDb Duellen</p>
+                <h2 class="font-display text-2xl lg:text-4xl font-bold mb-1">Deine persönlichen Top 20</h2>
+                <p class="text-slate-400 text-xs lg:text-base">Basierend auf deinen IMDb Duellen</p>
             </div>
             
-            <!-- Top 3 Podium (Mobile Optimized) -->
-            <div class="flex justify-center items-end gap-2 mb-8 h-48">
+            <!-- Top 3 Podium -->
+            <div class="podium-container flex justify-center items-end gap-2 lg:gap-8 mb-8 lg:mb-12 h-48 lg:h-72">
                 <!-- 2nd -->
-                <div class="flex-1 max-w-[100px] text-center">
-                    <div class="glass-card rounded-xl p-1 mb-2 border border-slate-600">
-                        <img :src="tmdbBase + rankings[1]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                <div class="flex-1 max-w-[100px] lg:max-w-[180px] text-center">
+                    <div class="glass-card rounded-xl p-1 lg:p-3 mb-2 border border-slate-600">
+                        <img :src="tmdbBase + rankings[1]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[1]?.title">
                     </div>
-                    <div class="w-6 h-6 mx-auto rounded-full bg-slate-700 flex items-center justify-center text-xs font-black mb-1">2</div>
+                    <div class="w-6 h-6 lg:w-10 lg:h-10 mx-auto rounded-full bg-slate-700 flex items-center justify-center text-xs lg:text-lg font-black mb-1">2</div>
+                    <p class="hidden lg:block text-sm text-slate-300 truncate px-2" x-text="rankings[1]?.title"></p>
                 </div>
                 
                 <!-- 1st -->
-                <div class="flex-1 max-w-[120px] text-center scale-110">
-                    <div class="glass-card rounded-xl p-1.5 mb-2 border-2 border-yellow-500 shadow-lg shadow-yellow-500/10">
-                        <img :src="tmdbBase + rankings[0]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                <div class="flex-1 max-w-[120px] lg:max-w-[220px] text-center scale-110 lg:scale-100">
+                    <div class="glass-card rounded-xl p-1.5 lg:p-4 mb-2 border-2 border-yellow-500 shadow-lg shadow-yellow-500/10">
+                        <img :src="tmdbBase + rankings[0]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[0]?.title">
                     </div>
-                    <div class="w-8 h-8 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-sm font-black text-black mb-1">1</div>
+                    <div class="w-8 h-8 lg:w-12 lg:h-12 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-sm lg:text-xl font-black text-black mb-1">1</div>
+                    <p class="hidden lg:block text-base font-bold truncate px-2" x-text="rankings[0]?.title"></p>
                 </div>
                 
                 <!-- 3rd -->
-                <div class="flex-1 max-w-[100px] text-center">
-                    <div class="glass-card rounded-xl p-1 mb-2 border border-orange-900">
-                        <img :src="tmdbBase + rankings[2]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover">
+                <div class="flex-1 max-w-[100px] lg:max-w-[180px] text-center">
+                    <div class="glass-card rounded-xl p-1 lg:p-3 mb-2 border border-orange-900">
+                        <img :src="tmdbBase + rankings[2]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[2]?.title">
                     </div>
-                    <div class="w-6 h-6 mx-auto rounded-full bg-orange-900 flex items-center justify-center text-xs font-black mb-1">3</div>
+                    <div class="w-6 h-6 lg:w-10 lg:h-10 mx-auto rounded-full bg-orange-900 flex items-center justify-center text-xs lg:text-lg font-black mb-1">3</div>
+                    <p class="hidden lg:block text-sm text-slate-300 truncate px-2" x-text="rankings[2]?.title"></p>
                 </div>
             </div>
             
             <!-- Rank 4-20 List -->
-            <div class="glass-card rounded-2xl p-2 mb-6">
-                <div class="space-y-1">
+            <div class="glass-card rounded-2xl p-2 lg:p-6 mb-6">
+                <div class="rankings-list space-y-1 lg:space-y-2">
                     <template x-for="(film, index) in rankings.slice(3, 20)" :key="film.id">
-                        <div class="rank-item flex items-center gap-3 p-2 rounded-lg bg-white/5 active:bg-white/10"
+                        <div class="rank-item flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer touch-btn"
                              :style="'animation-delay: ' + (index * 0.03) + 's'">
-                            <span class="w-5 text-center font-display font-bold text-slate-500 text-xs" x-text="index + 4"></span>
-                            <img :src="tmdbBase + film.poster" class="w-8 h-12 rounded object-cover bg-slate-800">
+                            <span class="w-5 lg:w-8 text-center font-display font-bold text-slate-500 text-xs lg:text-base" x-text="index + 4"></span>
+                            <img :src="tmdbBase + film.poster" class="w-10 h-14 lg:w-12 lg:h-16 rounded object-cover bg-slate-800" loading="lazy" :alt="film.title">
                             <div class="flex-1 min-w-0">
-                                <p class="font-bold text-xs truncate" x-text="film.title"></p>
-                                <p class="text-[10px] text-slate-500 uppercase" x-text="film.year"></p>
+                                <p class="font-bold text-sm lg:text-base truncate" x-text="film.title"></p>
+                                <p class="text-[10px] lg:text-sm text-slate-500 uppercase" x-text="film.year + ' · ' + film.director"></p>
                             </div>
                             <div class="text-right pr-2">
-                                <p class="font-bold text-xs text-yellow-400" x-text="Math.round(film.score)"></p>
+                                <p class="font-bold text-xs lg:text-base text-yellow-400" x-text="Math.round(film.score)"></p>
                             </div>
                         </div>
                     </template>
@@ -253,14 +677,14 @@
             </div>
             
             <!-- Actions -->
-            <div class="grid grid-cols-2 gap-3 pb-8">
-                <button @click="shareResults()" class="py-3.5 rounded-xl glass-card text-white font-medium text-sm flex items-center justify-center gap-2 border border-white/10 active:bg-white/10">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="action-buttons grid grid-cols-2 gap-3 lg:gap-4 pb-8 safe-bottom">
+                <button @click="shareResults()" class="touch-btn py-4 rounded-xl glass-card text-white font-medium text-sm lg:text-base flex items-center justify-center gap-2 border border-white/10 hover:bg-white/10 transition-colors">
+                    <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                     </svg>
                     Teilen
                 </button>
-                <button @click="restart()" class="py-3.5 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black text-sm shadow-lg shadow-orange-500/20 active:opacity-90">
+                <button @click="restart()" class="touch-btn py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black text-sm lg:text-base shadow-lg shadow-orange-500/20 hover:opacity-90 transition-opacity">
                     Nochmal!
                 </button>
             </div>
@@ -276,8 +700,11 @@
                 comparisons: 0,
                 maxRounds: 10,
                 selected: null,
+                swipeDirection: null,
+                touchStartY: 0,
+                hammer: null,
                 
-                // IMDb Top 100 Data (Sample)
+                // IMDb Top 100 Data
                 allFilms: [
                     { id: 1, title: 'Die Verurteilten', poster: '/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg', year: '1994', director: 'F. Darabont' },
                     { id: 2, title: 'Der Pate', poster: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', year: '1972', director: 'F. F. Coppola' },
@@ -333,9 +760,75 @@
                 usedPairs: new Set(),
                 
                 init() {
+                    // Fortschritt aus LocalStorage laden
+                    this.loadProgress();
+                    
                     this.films = [...this.allFilms];
                     this.resetSession();
                     this.generatePair();
+                    
+                    // Swipe-Gesten initialisieren
+                    this.$nextTick(() => {
+                        this.initSwipeGestures();
+                        
+                        // Loading Overlay ausblenden
+                        setTimeout(() => {
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                        }, 500);
+                    });
+                    
+                    // Service Worker registrieren (PWA)
+                    this.registerServiceWorker();
+                },
+                
+                initSwipeGestures() {
+                    const container = document.getElementById('duelContainer');
+                    if (!container || !window.Hammer) return;
+                    
+                    this.hammer = new Hammer(container);
+                    this.hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+                    
+                    // Swipe auf Film A (links) = wähle Film A
+                    this.hammer.on('swipeleft', (e) => {
+                        const filmA = document.getElementById('filmA');
+                        const rect = filmA.getBoundingClientRect();
+                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
+                            this.showSwipeIndicator('left');
+                            this.chooseFilm(this.currentPair[0]);
+                        }
+                    });
+                    
+                    // Swipe auf Film B (rechts) = wähle Film B
+                    this.hammer.on('swiperight', (e) => {
+                        const filmB = document.getElementById('filmB');
+                        const rect = filmB.getBoundingClientRect();
+                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
+                            this.showSwipeIndicator('right');
+                            this.chooseFilm(this.currentPair[1]);
+                        }
+                    });
+                },
+                
+                showSwipeIndicator(direction) {
+                    const indicator = document.getElementById(direction === 'left' ? 'swipeLeftIndicator' : 'swipeRightIndicator');
+                    if (indicator) {
+                        indicator.classList.add('show');
+                        setTimeout(() => indicator.classList.remove('show'), 300);
+                    }
+                },
+                
+                onTouchStart(e, film) {
+                    this.touchStartY = e.touches[0].clientY;
+                },
+                
+                onTouchEnd(e, film) {
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const diff = this.touchStartY - touchEndY;
+                    
+                    // Nur als Tap werten, wenn vertikale Bewegung minimal
+                    if (Math.abs(diff) < 10) {
+                        // Es war ein Tap
+                    }
                 },
                 
                 resetSession() {
@@ -368,9 +861,17 @@
                 },
                 
                 chooseFilm(winner) {
+                    if (this.selected) return; // Verhindere Doppelklicks
+                    
                     this.selected = winner === this.currentPair[0] ? 'A' : 'B';
                     const loser = this.currentPair.find(f => f.id !== winner.id);
                     
+                    // Haptisches Feedback (Vibration)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                    
+                    // ELO-System Update
                     this.filmStats[winner.id].wins++;
                     this.filmStats[loser.id].losses++;
                     
@@ -381,10 +882,14 @@
                     
                     this.comparisons++;
                     
+                    // Fortschritt speichern
+                    this.saveProgress();
+                    
                     setTimeout(() => {
                         this.selected = null;
                         if (this.comparisons >= this.maxRounds) {
                             this.mode = 'building';
+                            this.clearProgress(); // Fortschritt löschen bei Abschluss
                             setTimeout(() => {
                                 this.calculateRankings();
                                 this.mode = 'results';
@@ -396,6 +901,10 @@
                 },
                 
                 skipBoth() {
+                    // Haptisches Feedback
+                    if (navigator.vibrate) {
+                        navigator.vibrate([30, 50, 30]);
+                    }
                     this.generatePair();
                 },
                 
@@ -411,12 +920,19 @@
                 
                 shareResults() {
                     const winner = this.rankings[0]?.title || 'Film';
-                    const text = `Mein IMDb Favorit: ${winner}! Spiel auch das IMDb Duell auf Walters Dashboard.`;
+                    const text = `Mein IMDb Favorit: ${winner}! 🎬 Spiel auch das IMDb Duell und finde deine Top-Filme.`;
+                    
                     if (navigator.share) {
-                        navigator.share({ title: 'IMDb Duell', text, url: window.location.href });
+                        navigator.share({ 
+                            title: 'IMDb Duell - Meine Topliste', 
+                            text: text, 
+                            url: window.location.href 
+                        }).catch(() => {
+                            // Teilen abgebrochen
+                        });
                     } else {
-                        navigator.clipboard.writeText(text);
-                        alert('Ergebnis kopiert!');
+                        navigator.clipboard.writeText(text + ' ' + window.location.href);
+                        this.showToast('Ergebnis kopiert!');
                     }
                 },
                 
@@ -424,6 +940,72 @@
                     this.mode = 'duel';
                     this.resetSession();
                     this.generatePair();
+                    this.clearProgress();
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                
+                // LocalStorage Funktionen
+                saveProgress() {
+                    try {
+                        const progress = {
+                            comparisons: this.comparisons,
+                            filmStats: this.filmStats,
+                            usedPairs: Array.from(this.usedPairs),
+                            currentPair: this.currentPair,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('imdbDuelProgress', JSON.stringify(progress));
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht speichern:', e);
+                    }
+                },
+                
+                loadProgress() {
+                    try {
+                        const saved = localStorage.getItem('imdbDuelProgress');
+                        if (saved) {
+                            const progress = JSON.parse(saved);
+                            // Prüfe ob der Fortschritt nicht zu alt ist (7 Tage)
+                            const maxAge = 7 * 24 * 60 * 60 * 1000;
+                            if (Date.now() - progress.timestamp < maxAge && progress.comparisons < this.maxRounds) {
+                                // Optional: Fortsetzen anbieten
+                                this.savedProgress = progress;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht laden:', e);
+                    }
+                },
+                
+                clearProgress() {
+                    try {
+                        localStorage.removeItem('imdbDuelProgress');
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht löschen:', e);
+                    }
+                },
+                
+                showToast(message) {
+                    const toast = document.getElementById('toast');
+                    toast.textContent = message;
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 2000);
+                },
+                
+                // Service Worker für PWA
+                registerServiceWorker() {
+                    if ('serviceWorker' in navigator) {
+                        const swCode = `
+                            self.addEventListener('install', e => self.skipWaiting());
+                            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                            self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+                        `;
+                        const blob = new Blob([swCode], { type: 'application/javascript' });
+                        const swUrl = URL.createObjectURL(blob);
+                        navigator.serviceWorker.register(swUrl).catch(() => {});
+                    }
                 }
             }
         }
