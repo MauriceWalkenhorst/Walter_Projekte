@@ -58,6 +58,12 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
         
+        .glass-card-dark {
+            background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
         .film-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
@@ -208,6 +214,41 @@
         .card-stack::after {
             transform: scale(0.9) translateY(20px);
             opacity: 0.3;
+        }
+        
+        /* Modal/Dialog */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1d23 0%, #0f1115 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1.5rem;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal-content {
+            transform: scale(1) translateY(0);
         }
         
         /* ===== DESKTOP STYLES ===== */
@@ -495,6 +536,27 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+        
+        /* Stats Badge */
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.625rem;
+            font-weight: 600;
+        }
+        
+        .stat-badge.wins {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .stat-badge.streak {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
     </style>
 </head>
 <body class="text-white antialiased overflow-x-hidden selection:bg-yellow-400 selection:text-black" x-data="filmDuel()" x-init="init()">
@@ -509,6 +571,39 @@
     
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
+    
+    <!-- Modal für Historie -->
+    <div id="historyModal" class="modal-overlay" :class="{ 'show': showHistory }" @click="showHistory = false">
+        <div class="modal-content w-full max-w-2xl" @click.stop>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-display text-xl font-bold">Deine Ranking-Historie</h3>
+                    <button @click="showHistory = false" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="max-h-96 overflow-y-auto space-y-2">
+                    <template x-if="rankingHistory.length === 0">
+                        <p class="text-slate-400 text-center py-8">Noch keine abgeschlossenen Rankings</p>
+                    </template>
+                    <template x-for="(entry, index) in rankingHistory" :key="index">
+                        <div class="glass-card-dark rounded-xl p-4 flex items-center gap-4">
+                            <div class="text-2xl">🏆</div>
+                            <div class="flex-1">
+                                <p class="font-bold" x-text="'Top 3: ' + entry.top3.join(', ')"></p>
+                                <p class="text-xs text-slate-400" x-text="formatDate(entry.date) + ' · ' + entry.totalDuels + ' Duelle'"></p>
+                            </div>
+                            <button @click="loadHistoryRanking(index)" class="px-4 py-2 bg-yellow-400/20 text-yellow-400 rounded-lg text-sm font-medium hover:bg-yellow-400/30 transition-colors">
+                                Ansehen
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="aurora"></div>
     
@@ -555,6 +650,15 @@
                         <div class="film-info absolute bottom-0 left-0 right-0">
                             <h2 class="font-display text-lg lg:text-2xl font-bold leading-tight" x-text="currentPair[0]?.title"></h2>
                             <p class="text-[10px] lg:text-sm text-slate-300 uppercase tracking-wider mt-1 lg:mt-2" x-text="currentPair[0]?.year + ' · ' + currentPair[0]?.director"></p>
+                            <!-- Stats Anzeige -->
+                            <div class="flex gap-2 mt-2" x-show="getFilmStats(currentPair[0]?.id)">
+                                <span class="stat-badge wins" x-show="getFilmStats(currentPair[0]?.id)?.wins > 0">
+                                    <span x-text="getFilmStats(currentPair[0]?.id)?.wins + 'S'"></span>
+                                </span>
+                                <span class="stat-badge streak" x-show="getFilmStats(currentPair[0]?.id)?.streak > 1">
+                                    🔥 <span x-text="getFilmStats(currentPair[0]?.id)?.streak"></span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,6 +686,15 @@
                         <div class="film-info absolute bottom-0 left-0 right-0">
                             <h2 class="font-display text-lg lg:text-2xl font-bold leading-tight" x-text="currentPair[1]?.title"></h2>
                             <p class="text-[10px] lg:text-sm text-slate-300 uppercase tracking-wider mt-1 lg:mt-2" x-text="currentPair[1]?.year + ' · ' + currentPair[1]?.director"></p>
+                            <!-- Stats Anzeige -->
+                            <div class="flex gap-2 mt-2" x-show="getFilmStats(currentPair[1]?.id)">
+                                <span class="stat-badge wins" x-show="getFilmStats(currentPair[1]?.id)?.wins > 0">
+                                    <span x-text="getFilmStats(currentPair[1]?.id)?.wins + 'S'"></span>
+                                </span>
+                                <span class="stat-badge streak" x-show="getFilmStats(currentPair[1]?.id)?.streak > 1">
+                                    🔥 <span x-text="getFilmStats(currentPair[1]?.id)?.streak"></span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -623,7 +736,23 @@
                     <span class="text-3xl lg:text-4xl">🏆</span>
                 </div>
                 <h2 class="font-display text-2xl lg:text-4xl font-bold mb-1">Deine persönlichen Top 20</h2>
-                <p class="text-slate-400 text-xs lg:text-base">Basierend auf deinen IMDb Duellen</p>
+                <p class="text-slate-400 text-xs lg:text-base">Basierend auf <span x-text="totalDuelsAllTime" class="text-yellow-400 font-bold"></span> Duelle</p>
+            </div>
+            
+            <!-- Stats Übersicht -->
+            <div class="grid grid-cols-3 gap-2 lg:gap-4 mb-6 lg:mb-8 max-w-lg mx-auto">
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <p class="text-2xl lg:text-3xl font-bold text-yellow-400" x-text="totalDuelsAllTime"></p>
+                    <p class="text-xs text-slate-400">Duelle gesamt</p>
+                </div>
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <p class="text-2xl lg:text-3xl font-bold text-green-400" x-text="rankingHistory.length"></p>
+                    <p class="text-xs text-slate-400">Abgeschlossen</p>
+                </div>
+                <div class="glass-card rounded-xl p-3 text-center">
+                    <p class="text-2xl lg:text-3xl font-bold text-blue-400" x-text="allFilms.filter(f => filmStats[f.id]?.wins > 0).length"></p>
+                    <p class="text-xs text-slate-400">Filme bewertet</p>
+                </div>
             </div>
             
             <!-- Top 3 Podium -->
@@ -668,6 +797,14 @@
                                 <p class="font-bold text-sm lg:text-base truncate" x-text="film.title"></p>
                                 <p class="text-[10px] lg:text-sm text-slate-500 uppercase" x-text="film.year + ' · ' + film.director"></p>
                             </div>
+                            <div class="flex items-center gap-2">
+                                <span class="stat-badge wins" x-show="film.wins > 0">
+                                    <span x-text="film.wins + 'S'"></span>
+                                </span>
+                                <span class="stat-badge streak" x-show="film.streak > 2">
+                                    🔥 <span x-text="film.streak"></span>
+                                </span>
+                            </div>
                             <div class="text-right pr-2">
                                 <p class="font-bold text-xs lg:text-base text-yellow-400" x-text="Math.round(film.score)"></p>
                             </div>
@@ -677,12 +814,24 @@
             </div>
             
             <!-- Actions -->
-            <div class="action-buttons grid grid-cols-2 gap-3 lg:gap-4 pb-8 safe-bottom">
+            <div class="action-buttons grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 pb-8 safe-bottom">
                 <button @click="shareResults()" class="touch-btn py-4 rounded-xl glass-card text-white font-medium text-sm lg:text-base flex items-center justify-center gap-2 border border-white/10 hover:bg-white/10 transition-colors">
                     <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                     </svg>
                     Teilen
+                </button>
+                <button @click="showHistory = true" class="touch-btn py-4 rounded-xl glass-card text-white font-medium text-sm lg:text-base flex items-center justify-center gap-2 border border-white/10 hover:bg-white/10 transition-colors">
+                    <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Historie
+                </button>
+                <button @click="exportRankings()" class="touch-btn py-4 rounded-xl glass-card text-white font-medium text-sm lg:text-base flex items-center justify-center gap-2 border border-white/10 hover:bg-white/10 transition-colors">
+                    <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export
                 </button>
                 <button @click="restart()" class="touch-btn py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black text-sm lg:text-base shadow-lg shadow-orange-500/20 hover:opacity-90 transition-opacity">
                     Nochmal!
@@ -703,6 +852,12 @@
                 swipeDirection: null,
                 touchStartY: 0,
                 hammer: null,
+                showHistory: false,
+                
+                // Persistente Daten
+                filmStats: {},
+                rankingHistory: [],
+                totalDuelsAllTime: 0,
                 
                 // IMDb Top 100 Data
                 allFilms: [
@@ -756,12 +911,11 @@
                 films: [],
                 currentPair: [],
                 rankings: [],
-                filmStats: {},
                 usedPairs: new Set(),
                 
                 init() {
-                    // Fortschritt aus LocalStorage laden
-                    this.loadProgress();
+                    // Persistente Daten laden
+                    this.loadPersistentData();
                     
                     this.films = [...this.allFilms];
                     this.resetSession();
@@ -788,7 +942,6 @@
                     this.hammer = new Hammer(container);
                     this.hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
                     
-                    // Swipe auf Film A (links) = wähle Film A
                     this.hammer.on('swipeleft', (e) => {
                         const filmA = document.getElementById('filmA');
                         const rect = filmA.getBoundingClientRect();
@@ -798,7 +951,6 @@
                         }
                     });
                     
-                    // Swipe auf Film B (rechts) = wähle Film B
                     this.hammer.on('swiperight', (e) => {
                         const filmB = document.getElementById('filmB');
                         const rect = filmB.getBoundingClientRect();
@@ -824,76 +976,159 @@
                 onTouchEnd(e, film) {
                     const touchEndY = e.changedTouches[0].clientY;
                     const diff = this.touchStartY - touchEndY;
-                    
-                    // Nur als Tap werten, wenn vertikale Bewegung minimal
                     if (Math.abs(diff) < 10) {
-                        // Es war ein Tap
+                        // Tap
                     }
+                },
+                
+                // VERBESSERTES ELO-SYSTEM
+                calculateDynamicK(filmId) {
+                    const stats = this.filmStats[filmId];
+                    if (!stats) return 40;
+                    
+                    const totalGames = stats.wins + stats.losses;
+                    
+                    // Dynamischer K-Faktor basierend auf Erfahrung
+                    if (totalGames < 5) return 60;      // Neue Filme: höhere Volatilität
+                    if (totalGames < 15) return 40;     // Etablierte Filme: normal
+                    if (totalGames < 30) return 30;     // Erfahrene Filme: stabilisierend
+                    return 20;                           // Sehr erfahrene Filme: sehr stabil
+                },
+                
+                calculateWinStreakBonus(winnerId, loserId) {
+                    const winnerStats = this.filmStats[winnerId];
+                    const loserStats = this.filmStats[loserId];
+                    
+                    let bonus = 0;
+                    
+                    // Win-Streak Bonus
+                    if (winnerStats.streak >= 3) {
+                        bonus += winnerStats.streak * 2; // +2 pro Streak
+                    }
+                    
+                    // Upset Bonus (Unterdog schlägt Favorit)
+                    if (winnerStats.score < loserStats.score - 100) {
+                        bonus += 15; // Extra Punkte für Überraschungssieg
+                    }
+                    
+                    return bonus;
                 },
                 
                 resetSession() {
                     this.comparisons = 0;
                     this.usedPairs.clear();
-                    this.filmStats = {};
-                    this.films.forEach(f => {
-                        this.filmStats[f.id] = { wins: 0, losses: 0, score: 1000 };
+                    // filmStats NICHT zurücksetzen - bleibt persistent!
+                    
+                    // Initialisiere fehlende Stats für neue Filme
+                    this.allFilms.forEach(f => {
+                        if (!this.filmStats[f.id]) {
+                            this.filmStats[f.id] = { 
+                                wins: 0, 
+                                losses: 0, 
+                                score: 1000,
+                                streak: 0,
+                                lastResult: null
+                            };
+                        }
                     });
                 },
                 
                 generatePair() {
-                    const shuffled = [...this.films].sort(() => 0.5 - Math.random());
-                    let filmA = shuffled[0];
-                    let filmB = shuffled[1];
+                    // Smart Pairing: Versuche Filme mit ähnlichem ELO zu paaren
+                    const availableFilms = [...this.films].filter(f => {
+                        // Filtere Filme die schon oft gespielt haben in dieser Session
+                        const filmKey = `film-${f.id}`;
+                        return !this.usedPairs.has(filmKey);
+                    });
                     
-                    const pairKey = [filmA.id, filmB.id].sort().join('-');
-                    if (this.usedPairs.has(pairKey)) {
-                        for (let i = 2; i < shuffled.length; i++) {
-                            const newKey = [filmA.id, shuffled[i].id].sort().join('-');
-                            if (!this.usedPairs.has(newKey)) {
-                                filmB = shuffled[i];
-                                break;
-                            }
-                        }
+                    if (availableFilms.length < 2) {
+                        // Reset wenn keine Paare mehr möglich
+                        this.usedPairs.clear();
+                        return this.generatePair();
+                    }
+                    
+                    // Sortiere nach ELO für bessere Matches
+                    availableFilms.sort((a, b) => this.filmStats[b.id].score - this.filmStats[a.id].score);
+                    
+                    // Wähle zufälligen Film aus Top-Hälfte
+                    const midPoint = Math.floor(availableFilms.length / 2);
+                    const filmAIndex = Math.floor(Math.random() * midPoint);
+                    const filmA = availableFilms[filmAIndex];
+                    
+                    // Finde ähnlichen Gegner (±200 ELO Punkte)
+                    const filmAScore = this.filmStats[filmA.id].score;
+                    const similarFilms = availableFilms.filter((f, idx) => {
+                        if (idx === filmAIndex) return false;
+                        const scoreDiff = Math.abs(this.filmStats[f.id].score - filmAScore);
+                        return scoreDiff <= 200;
+                    });
+                    
+                    let filmB;
+                    if (similarFilms.length > 0) {
+                        filmB = similarFilms[Math.floor(Math.random() * similarFilms.length)];
+                    } else {
+                        // Fallback: zufällige Auswahl
+                        const remaining = availableFilms.filter((_, idx) => idx !== filmAIndex);
+                        filmB = remaining[Math.floor(Math.random() * remaining.length)];
                     }
                     
                     this.currentPair = [filmA, filmB];
-                    this.usedPairs.add([filmA.id, filmB.id].sort().join('-'));
+                    this.usedPairs.add(`film-${filmA.id}`);
+                    this.usedPairs.add(`film-${filmB.id}`);
                 },
                 
                 chooseFilm(winner) {
-                    if (this.selected) return; // Verhindere Doppelklicks
+                    if (this.selected) return;
                     
                     this.selected = winner === this.currentPair[0] ? 'A' : 'B';
                     const loser = this.currentPair.find(f => f.id !== winner.id);
                     
-                    // Haptisches Feedback (Vibration)
-                    if (navigator.vibrate) {
-                        navigator.vibrate(50);
-                    }
+                    // Haptisches Feedback
+                    if (navigator.vibrate) navigator.vibrate(50);
                     
-                    // ELO-System Update
-                    this.filmStats[winner.id].wins++;
-                    this.filmStats[loser.id].losses++;
+                    // VERBESSERTES ELO-SYSTEM
+                    const winnerStats = this.filmStats[winner.id];
+                    const loserStats = this.filmStats[loser.id];
                     
-                    const expectedA = 1 / (1 + Math.pow(10, (this.filmStats[loser.id].score - this.filmStats[winner.id].score) / 400));
-                    const k = 40;
-                    this.filmStats[winner.id].score += k * (1 - expectedA);
-                    this.filmStats[loser.id].score -= k * (1 - expectedA);
+                    // Dynamische K-Faktoren
+                    const kWinner = this.calculateDynamicK(winner.id);
+                    const kLoser = this.calculateDynamicK(loser.id);
+                    const avgK = (kWinner + kLoser) / 2;
+                    
+                    // Erwartungswert berechnen
+                    const expectedWinner = 1 / (1 + Math.pow(10, (loserStats.score - winnerStats.score) / 400));
+                    
+                    // Grundlegende Punktänderung
+                    let pointChange = avgK * (1 - expectedWinner);
+                    
+                    // Zusätzliche Bonus-Punkte
+                    pointChange += this.calculateWinStreakBonus(winner.id, loser.id);
+                    
+                    // Score aktualisieren
+                    winnerStats.score += pointChange;
+                    loserStats.score -= pointChange;
+                    
+                    // Stats aktualisieren
+                    winnerStats.wins++;
+                    loserStats.losses++;
+                    
+                    // Streaks aktualisieren
+                    winnerStats.streak = (winnerStats.lastResult === 'win') ? winnerStats.streak + 1 : 1;
+                    loserStats.streak = 0;
+                    
+                    winnerStats.lastResult = 'win';
+                    loserStats.lastResult = 'loss';
                     
                     this.comparisons++;
+                    this.totalDuelsAllTime++;
                     
-                    // Fortschritt speichern
-                    this.saveProgress();
+                    // Persistente Speicherung
+                    this.savePersistentData();
                     
                     setTimeout(() => {
                         this.selected = null;
                         if (this.comparisons >= this.maxRounds) {
-                            this.mode = 'building';
-                            this.clearProgress(); // Fortschritt löschen bei Abschluss
-                            setTimeout(() => {
-                                this.calculateRankings();
-                                this.mode = 'results';
-                            }, 1200);
+                            this.finishSession();
                         } else {
                             this.generatePair();
                         }
@@ -901,89 +1136,152 @@
                 },
                 
                 skipBoth() {
-                    // Haptisches Feedback
-                    if (navigator.vibrate) {
-                        navigator.vibrate([30, 50, 30]);
-                    }
+                    if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
                     this.generatePair();
+                },
+                
+                finishSession() {
+                    this.mode = 'building';
+                    
+                    // Speichere Ranking in Historie
+                    this.calculateRankings();
+                    this.saveToHistory();
+                    
+                    setTimeout(() => {
+                        this.mode = 'results';
+                    }, 1200);
                 },
                 
                 calculateRankings() {
                     this.rankings = Object.entries(this.filmStats)
                         .map(([id, stats]) => {
                             const film = this.allFilms.find(f => f.id === parseInt(id));
-                            return { ...film, ...stats };
+                            return { 
+                                ...film, 
+                                ...stats,
+                                winRate: stats.wins + stats.losses > 0 
+                                    ? (stats.wins / (stats.wins + stats.losses) * 100).toFixed(1)
+                                    : 0
+                            };
                         })
                         .filter(f => f.wins > 0 || f.losses > 0)
                         .sort((a, b) => b.score - a.score);
                 },
                 
+                saveToHistory() {
+                    const top3 = this.rankings.slice(0, 3).map(f => f.title);
+                    const historyEntry = {
+                        date: new Date().toISOString(),
+                        top3: top3,
+                        totalDuels: this.comparisons,
+                        rankings: [...this.rankings], // Kopie des Rankings
+                        allTimeDuels: this.totalDuelsAllTime
+                    };
+                    
+                    this.rankingHistory.unshift(historyEntry);
+                    
+                    // Max 50 Einträge behalten
+                    if (this.rankingHistory.length > 50) {
+                        this.rankingHistory = this.rankingHistory.slice(0, 50);
+                    }
+                    
+                    this.savePersistentData();
+                },
+                
+                getFilmStats(filmId) {
+                    return this.filmStats[filmId] || null;
+                },
+                
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                
+                loadHistoryRanking(index) {
+                    const entry = this.rankingHistory[index];
+                    if (entry && entry.rankings) {
+                        this.rankings = entry.rankings;
+                        this.showHistory = false;
+                    }
+                },
+                
                 shareResults() {
                     const winner = this.rankings[0]?.title || 'Film';
-                    const text = `Mein IMDb Favorit: ${winner}! 🎬 Spiel auch das IMDb Duell und finde deine Top-Filme.`;
+                    const stats = `🏆 ${winner} führt nach ${this.totalDuelsAllTime} Duelle!`;
+                    const top3 = this.rankings.slice(0, 3).map((f, i) => `${i+1}. ${f.title}`).join('\n');
+                    const text = `${stats}\n\nMeine Top 3:\n${top3}\n\nSpiel auch:`;
                     
                     if (navigator.share) {
                         navigator.share({ 
                             title: 'IMDb Duell - Meine Topliste', 
                             text: text, 
                             url: window.location.href 
-                        }).catch(() => {
-                            // Teilen abgebrochen
-                        });
+                        }).catch(() => {});
                     } else {
-                        navigator.clipboard.writeText(text + ' ' + window.location.href);
+                        navigator.clipboard.writeText(text + '\n' + window.location.href);
                         this.showToast('Ergebnis kopiert!');
                     }
+                },
+                
+                exportRankings() {
+                    const exportData = {
+                        exportDate: new Date().toISOString(),
+                        totalDuels: this.totalDuelsAllTime,
+                        filmStats: this.filmStats,
+                        rankingHistory: this.rankingHistory,
+                        currentRankings: this.rankings
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `imdb-duell-rankings-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    this.showToast('Rankings exportiert!');
                 },
                 
                 restart() {
                     this.mode = 'duel';
                     this.resetSession();
                     this.generatePair();
-                    this.clearProgress();
-                    
-                    // Scroll to top
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
                 
-                // LocalStorage Funktionen
-                saveProgress() {
+                // PERSISTENTE SPEICHERUNG
+                savePersistentData() {
                     try {
-                        const progress = {
-                            comparisons: this.comparisons,
+                        const data = {
                             filmStats: this.filmStats,
-                            usedPairs: Array.from(this.usedPairs),
-                            currentPair: this.currentPair,
-                            timestamp: Date.now()
+                            rankingHistory: this.rankingHistory,
+                            totalDuelsAllTime: this.totalDuelsAllTime,
+                            lastUpdated: new Date().toISOString()
                         };
-                        localStorage.setItem('imdbDuelProgress', JSON.stringify(progress));
+                        localStorage.setItem('imdbDuelPersistent', JSON.stringify(data));
                     } catch (e) {
-                        console.warn('Konnte Fortschritt nicht speichern:', e);
+                        console.warn('Speichern fehlgeschlagen:', e);
                     }
                 },
                 
-                loadProgress() {
+                loadPersistentData() {
                     try {
-                        const saved = localStorage.getItem('imdbDuelProgress');
+                        const saved = localStorage.getItem('imdbDuelPersistent');
                         if (saved) {
-                            const progress = JSON.parse(saved);
-                            // Prüfe ob der Fortschritt nicht zu alt ist (7 Tage)
-                            const maxAge = 7 * 24 * 60 * 60 * 1000;
-                            if (Date.now() - progress.timestamp < maxAge && progress.comparisons < this.maxRounds) {
-                                // Optional: Fortsetzen anbieten
-                                this.savedProgress = progress;
-                            }
+                            const data = JSON.parse(saved);
+                            this.filmStats = data.filmStats || {};
+                            this.rankingHistory = data.rankingHistory || [];
+                            this.totalDuelsAllTime = data.totalDuelsAllTime || 0;
                         }
                     } catch (e) {
-                        console.warn('Konnte Fortschritt nicht laden:', e);
-                    }
-                },
-                
-                clearProgress() {
-                    try {
-                        localStorage.removeItem('imdbDuelProgress');
-                    } catch (e) {
-                        console.warn('Konnte Fortschritt nicht löschen:', e);
+                        console.warn('Laden fehlgeschlagen:', e);
                     }
                 },
                 
@@ -994,7 +1292,6 @@
                     setTimeout(() => toast.classList.remove('show'), 2000);
                 },
                 
-                // Service Worker für PWA
                 registerServiceWorker() {
                     if ('serviceWorker' in navigator) {
                         const swCode = `
