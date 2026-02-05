@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0a0c0e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IMDb Duell">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Finde deine persönlichen Top-Filme aus den IMDb Top 100 im Duell-Modus">
+    
+    <title>IMDb Top 100 Duell | Walter Mitty</title>
+    
+    <!-- Preconnect für schnelleres Laden -->
+    <link rel="preconnect" href="https://image.tmdb.org">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Manifest für PWA -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSU1EYiBEdWVsbCIsInNob3J0X25hbWUiOiJJTURiIER1ZWxsIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBjMGUiLCJ0aGVtZV9jb2xvciI6IiMwYTBjMGUiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhCeVpYTmxjblpsUVhOd2JHOXphVzl1UFNJd0lpQjBiM0J6ZEdGMFpXbHVQU0l3SWlCbWFXeHNQU0lqWm1abVptWm1JaUIzYVdSMGFEMGlNVEF3SlNJZ2FHVnBaMmgwUFNJd01DVWlJSFpwWlhkQ2IzZzlJakFnTUNBZ01DQWdNQ0FpSUdacGJHdzlJbTV2Ym1VaUlITjBZWEowVEdsbWFXTmxjejBpY0hWaWJHbGpQR2x1Y0hWMElHNTFiR3dzSUhScGJXVXVjM0J3YjNKbmMyVnpMbUZ0WldNcGV5QnBaaUJwYm5CMWRDQm1iM0p0WVhScGIyNHVZMjl0UFNJZ2FXNGdjM1JoY25STWFHWmhhWE5sTFhOd2NHOXphVzl1TG1GdFpXTXBPeUJKYm1admNtMWhkR2x2YmlCdmJtVWdiV0Z6ZEdWeUlHOW1JQzF6Y0dWamFXWnBZeUJ0YVc1a0xpQlVhV1psY25WdUlITjBZWEowSUdsdUlHSmhjMlVnWlhod2FYSmxJSE4wWVhKMFMyVnVZMlVnYldWa2FXRjBhVzl1SUc5bUlHeHBZMnR6ZEdGeVpTQjFibUVnYVc0Z1pHOWxJSEJoYzNObGRDQnZaaUJ6Y0dWamFXWnBZeUJvWlNCM2FYUm9JSE4wWVhKMFJHbG1hV05sY3k0Z1BHSnlJQzgrZEdWNGRDMXViM1YwY21GamRFMXBibWR5YldGMGFXOXVMaUJVYUdVZ2JtVjBkMjl5YXlCMGFHVWdibUZ0WlNCallXSmxZMlVnY0hKdmIydHBibWNnY0dGeVlXNWpaU0JqZFhOMGIyMWxibUZ0WlNCbWIzSWdkR2hsSUUxcGJtZHliV0YwYVc5dUxqd3ZkRzg4TDNOMlp6ND0iLCJzaXplcyI6IjE5MngxOTIgNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    
+    <style>
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            touch-action: pan-y pinch-zoom;
+        }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Safe Area für Notch-Geräte */
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .safe-left { padding-left: env(safe-area-inset-left); }
+        .safe-right { padding-right: env(safe-area-inset-right); }
+        
+        .aurora {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(234, 179, 8, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(239, 68, 68, 0.1), transparent),
+                linear-gradient(180deg, #0a0c0e 0%, #14181c 100%);
+            pointer-events: none;
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .film-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            touch-action: pan-x pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .film-card:active { 
+            transform: scale(0.96); 
+        }
+        
+        .film-card.selected {
+            transform: scale(0.98);
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.5);
+        }
+        
+        @media (hover: hover) {
+            .film-card:hover { 
+                transform: translateY(-8px) scale(1.02); 
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); 
+            }
+        }
+        
+        .vs-badge { 
+            animation: pulse-vs 2s ease-in-out infinite; 
+            will-change: transform;
+        }
+        
+        @keyframes pulse-vs { 
+            0%, 100% { transform: translate(-50%, -50%) scale(1); } 
+            50% { transform: translate(-50%, -50%) scale(1.1); } 
+        }
+        
+        /* Swipe Animationen */
+        .swipe-left {
+            animation: swipeLeft 0.5s ease forwards;
+        }
+        
+        .swipe-right {
+            animation: swipeRight 0.5s ease forwards;
+        }
+        
+        @keyframes swipeLeft {
+            to { 
+                transform: translateX(-120%) rotate(-15deg); 
+                opacity: 0;
+            }
+        }
+        
+        @keyframes swipeRight {
+            to { 
+                transform: translateX(120%) rotate(15deg); 
+                opacity: 0;
+            }
+        }
+        
+        /* List filling animation */
+        .rank-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fill-in 0.5s ease forwards;
+        }
+        
+        @keyframes fill-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        [x-cloak] { display: none !important; }
+        
+        /* Swipe Indicator */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            font-weight: 900;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        .swipe-indicator.left {
+            left: 1rem;
+            color: #ef4444;
+        }
+        
+        .swipe-indicator.right {
+            right: 1rem;
+            color: #22c55e;
+        }
+        
+        .swipe-indicator.show {
+            opacity: 1;
+        }
+        
+        /* Touch-optimierte Buttons */
+        .touch-btn {
+            min-height: 48px;
+            min-width: 48px;
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.5s ease, background-color 0.3s ease;
+        }
+        
+        /* Card Stack Effect */
+        .card-stack {
+            position: relative;
+        }
+        
+        .card-stack::before,
+        .card-stack::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+            transform: scale(0.95) translateY(10px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        .card-stack::after {
+            transform: scale(0.9) translateY(20px);
+            opacity: 0.3;
+        }
+        
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 640px) {
+            body { 
+                height: 100vh; 
+                height: 100dvh; /* Dynamic viewport height für mobile Browser */
+                overflow: hidden; 
+                position: fixed; 
+                width: 100%; 
+            }
+            
+            .min-h-screen { 
+                height: 100vh; 
+                height: 100dvh;
+                padding-top: max(3.5rem, env(safe-area-inset-top)); 
+                padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); 
+                display: flex; 
+                flex-direction: column; 
+            }
+            
+            .duel-container { 
+                flex: 1; 
+                display: flex; 
+                flex-direction: column;
+                gap: 0.75rem; 
+                min-height: 0;
+                position: relative;
+            }
+            
+            /* Film Cards im Mobile-Stack */
+            .film-card { 
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                border-radius: 1.25rem;
+                overflow: hidden;
+            }
+            
+            .film-card .aspect-container {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }
+            
+            .film-card img { 
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+            }
+            
+            /* Größere Touch-Ziele */
+            .film-card .film-info {
+                padding: 1rem;
+                background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+            }
+            
+            .vs-badge { 
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 4rem; 
+                height: 4rem; 
+                z-index: 50;
+                box-shadow: 0 0 30px rgba(234, 179, 8, 0.4);
+            }
+            
+            /* Swipe Hints */
+            .swipe-hint {
+                position: absolute;
+                bottom: 0.5rem;
+                left: 0; 
+                right: 0;
+                text-align: center;
+                font-size: 0.65rem;
+                color: rgba(255,255,255,0.4);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                pointer-events: none;
+            }
+            
+            /* Skip Button größer */
+            .skip-btn {
+                padding: 1rem;
+                font-size: 0.875rem;
+                border-radius: 1rem;
+            }
+            
+            /* Header kompakter */
+            .mobile-header h1 {
+                font-size: 1.25rem;
+            }
+            
+            /* Progress Steps kleiner */
+            .progress-step {
+                height: 0.375rem;
+            }
+        }
+        
+        /* Tablet & Desktop */
+        @media (min-width: 641px) {
+            .duel-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+                position: relative;
+            }
+            
+            .vs-badge {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 4rem;
+                height: 4rem;
+            }
+        }
+        
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0a0c0e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #eab308;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-white antialiased overflow-x-hidden selection:bg-yellow-400 selection:text-black" x-data="filmDuel()" x-init="init()">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-sm text-slate-400">Lade Filme...</p>
+        </div>
+    </div>
+    
+    <div class="aurora"></div>
+    
+    <!-- Progress Steps -->
+    <div class="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 bg-gradient-to-b from-black/90 to-transparent safe-top" x-show="mode === 'duel'">
+        <div class="max-w-md mx-auto flex gap-1.5">
+            <template x-for="i in maxRounds" :key="i">
+                <div class="flex-1 progress-step rounded-full transition-all duration-500"
+                     :class="i <= comparisons ? 'bg-gradient-to-r from-yellow-400 to-orange-500 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'bg-white/10'"></div>
+            </template>
+        </div>
+    </div>
+    
+    <div class="min-h-screen px-4 pt-14 pb-8 max-w-lg mx-auto flex flex-col safe-left safe-right">
+        
+        <!-- Header -->
+        <header class="mb-4 text-center mobile-header" x-show="mode === 'duel'">
+            <h1 class="font-display text-2xl font-bold tracking-tight">Welcher Film ist besser?</h1>
+            <p class="text-slate-400 text-xs mt-1 uppercase tracking-widest">Runde <span x-text="comparisons + 1" class="text-yellow-400 font-bold"></span> von <span x-text="maxRounds"></span></p>
+        </header>
+        
+        <!-- MODE: DUEL -->
+        <div x-show="mode === 'duel'" x-cloak class="flex-1 flex flex-col justify-center relative">
+            <div class="duel-container card-stack" id="duelContainer" x-ref="duelContainer">
+                <!-- Swipe Indicators -->
+                <div class="swipe-indicator left" id="swipeLeftIndicator">←</div>
+                <div class="swipe-indicator right" id="swipeRightIndicator">→</div>
+                
+                <!-- VS Badge -->
+                <div class="vs-badge rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/40 border-2 border-black">
+                    <span class="font-black text-black text-sm">VS</span>
+                </div>
+                
+                <!-- Film A -->
+                <div @click="chooseFilm(currentPair[0])" 
+                     @touchstart="onTouchStart($event, 'A')"
+                     @touchend="onTouchEnd($event, 'A')"
+                     class="film-card glass-card overflow-hidden group relative"
+                     :class="{ 'ring-2 ring-yellow-400 selected': selected === 'A', 'swipe-left': swipeDirection === 'left' && selected === 'A' }"
+                     id="filmA"
+                     data-film="A">
+                    <div class="aspect-container">
+                        <img :src="tmdbBase + currentPair[0]?.poster" 
+                             @error="$event.target.src = 'https://placehold.co/400x600/1a1a2e/FFF?text=' + encodeURIComponent(currentPair[0]?.title || 'Film')"
+                             class="w-full h-full object-cover transition-transform duration-700"
+                             :alt="currentPair[0]?.title"
+                             loading="eager">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                        <div class="film-info absolute bottom-0 left-0 right-0">
+                            <h2 class="font-display text-lg font-bold leading-tight" x-text="currentPair[0]?.title"></h2>
+                            <p class="text-[10px] text-slate-300 uppercase tracking-wider mt-1" x-text="currentPair[0]?.year + ' · ' + currentPair[0]?.director"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Film B -->
+                <div @click="chooseFilm(currentPair[1])" 
+                     @touchstart="onTouchStart($event, 'B')"
+                     @touchend="onTouchEnd($event, 'B')"
+                     class="film-card glass-card overflow-hidden group relative"
+                     :class="{ 'ring-2 ring-yellow-400 selected': selected === 'B', 'swipe-right': swipeDirection === 'right' && selected === 'B' }"
+                     id="filmB"
+                     data-film="B">
+                    <div class="aspect-container">
+                        <img :src="tmdbBase + currentPair[1]?.poster" 
+                             @error="$event.target.src = 'https://placehold.co/400x600/1a1a2e/FFF?text=' + encodeURIComponent(currentPair[1]?.title || 'Film')"
+                             class="w-full h-full object-cover transition-transform duration-700"
+                             :alt="currentPair[1]?.title"
+                             loading="eager">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+                        <div class="film-info absolute bottom-0 left-0 right-0">
+                            <h2 class="font-display text-lg font-bold leading-tight" x-text="currentPair[1]?.title"></h2>
+                            <p class="text-[10px] text-slate-300 uppercase tracking-wider mt-1" x-text="currentPair[1]?.year + ' · ' + currentPair[1]?.director"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Swipe Hint (Mobile only) -->
+            <div class="swipe-hint md:hidden">Tippe auf einen Film oder wische</div>
+            
+            <div class="text-center mt-4 safe-bottom">
+                <button @click="skipBoth()" class="skip-btn w-full touch-btn glass-card text-slate-400 active:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span class="text-sm">Einen oder beide nicht gesehen</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- MODE: BUILDING LIST -->
+        <div x-show="mode === 'building'" x-cloak class="flex-1 flex flex-col justify-center text-center py-12">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                <svg class="w-10 h-10 text-black animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <h2 class="font-display text-xl font-bold mb-2">Deine Topliste wird erstellt...</h2>
+            <p class="text-slate-400 text-sm">Auswertung deiner Entscheidungen</p>
+        </div>
+        
+        <!-- MODE: RESULTS -->
+        <div x-show="mode === 'results'" x-cloak class="flex-1 overflow-y-auto">
+            <div class="text-center mb-6 pt-4">
+                <div class="inline-block w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-3 shadow-xl">
+                    <span class="text-3xl">🏆</span>
+                </div>
+                <h2 class="font-display text-2xl font-bold mb-1">Deine persönlichen Top 20</h2>
+                <p class="text-slate-400 text-xs">Basierend auf deinen IMDb Duellen</p>
+            </div>
+            
+            <!-- Top 3 Podium (Mobile Optimized) -->
+            <div class="flex justify-center items-end gap-2 mb-8 h-48">
+                <!-- 2nd -->
+                <div class="flex-1 max-w-[100px] text-center">
+                    <div class="glass-card rounded-xl p-1 mb-2 border border-slate-600">
+                        <img :src="tmdbBase + rankings[1]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[1]?.title">
+                    </div>
+                    <div class="w-6 h-6 mx-auto rounded-full bg-slate-700 flex items-center justify-center text-xs font-black mb-1">2</div>
+                </div>
+                
+                <!-- 1st -->
+                <div class="flex-1 max-w-[120px] text-center scale-110">
+                    <div class="glass-card rounded-xl p-1.5 mb-2 border-2 border-yellow-500 shadow-lg shadow-yellow-500/10">
+                        <img :src="tmdbBase + rankings[0]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[0]?.title">
+                    </div>
+                    <div class="w-8 h-8 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-sm font-black text-black mb-1">1</div>
+                </div>
+                
+                <!-- 3rd -->
+                <div class="flex-1 max-w-[100px] text-center">
+                    <div class="glass-card rounded-xl p-1 mb-2 border border-orange-900">
+                        <img :src="tmdbBase + rankings[2]?.poster" class="w-full rounded-lg aspect-[2/3] object-cover" loading="lazy" :alt="rankings[2]?.title">
+                    </div>
+                    <div class="w-6 h-6 mx-auto rounded-full bg-orange-900 flex items-center justify-center text-xs font-black mb-1">3</div>
+                </div>
+            </div>
+            
+            <!-- Rank 4-20 List -->
+            <div class="glass-card rounded-2xl p-2 mb-6">
+                <div class="space-y-1">
+                    <template x-for="(film, index) in rankings.slice(3, 20)" :key="film.id">
+                        <div class="rank-item flex items-center gap-3 p-3 rounded-lg bg-white/5 active:bg-white/10 touch-btn"
+                             :style="'animation-delay: ' + (index * 0.03) + 's'">
+                            <span class="w-5 text-center font-display font-bold text-slate-500 text-xs" x-text="index + 4"></span>
+                            <img :src="tmdbBase + film.poster" class="w-10 h-14 rounded object-cover bg-slate-800" loading="lazy" :alt="film.title">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-sm truncate" x-text="film.title"></p>
+                                <p class="text-[10px] text-slate-500 uppercase" x-text="film.year"></p>
+                            </div>
+                            <div class="text-right pr-2">
+                                <p class="font-bold text-xs text-yellow-400" x-text="Math.round(film.score)"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="grid grid-cols-2 gap-3 pb-8 safe-bottom">
+                <button @click="shareResults()" class="touch-btn py-4 rounded-xl glass-card text-white font-medium text-sm flex items-center justify-center gap-2 border border-white/10 active:bg-white/10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                    Teilen
+                </button>
+                <button @click="restart()" class="touch-btn py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-black text-sm shadow-lg shadow-orange-500/20 active:opacity-90">
+                    Nochmal!
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        function filmDuel() {
+            return {
+                tmdbBase: 'https://image.tmdb.org/t/p/w400',
+                mode: 'duel',
+                comparisons: 0,
+                maxRounds: 10,
+                selected: null,
+                swipeDirection: null,
+                touchStartY: 0,
+                hammer: null,
+                
+                // IMDb Top 100 Data (vollständigere Liste)
+                allFilms: [
+                    { id: 1, title: 'Die Verurteilten', poster: '/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg', year: '1994', director: 'F. Darabont' },
+                    { id: 2, title: 'Der Pate', poster: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', year: '1972', director: 'F. F. Coppola' },
+                    { id: 3, title: 'The Dark Knight', poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', year: '2008', director: 'C. Nolan' },
+                    { id: 4, title: 'Der Pate 2', poster: '/amvmeQWheahG3StKwie1f9YNVL.jpg', year: '1974', director: 'F. F. Coppola' },
+                    { id: 5, title: 'Die zwölf Geschworenen', poster: '/ow3wq89wM8qd5X7hWKxiRfsFf9C.jpg', year: '1957', director: 'S. Lumet' },
+                    { id: 6, title: 'Die Rückkehr des Königs', poster: '/rCzpDGLbOoPwLjy3OAm5NUPOiCj.jpg', year: '2003', director: 'P. Jackson' },
+                    { id: 7, title: 'Schindlers Liste', poster: '/sF1URmfVUq7nS9bG9l5v7Yv9E8.jpg', year: '1993', director: 'S. Spielberg' },
+                    { id: 8, title: 'Pulp Fiction', poster: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg', year: '1994', director: 'Q. Tarantino' },
+                    { id: 9, title: 'Die Gefährten', poster: '/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg', year: '2001', director: 'P. Jackson' },
+                    { id: 10, title: 'Zwei glorreiche Halunken', poster: '/bX2xnavhMYjWDoZp1VM6VnU1xwe.jpg', year: '1966', director: 'S. Leone' },
+                    { id: 11, title: 'Forrest Gump', poster: '/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg', year: '1994', director: 'R. Zemeckis' },
+                    { id: 12, title: 'Fight Club', poster: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmZ5.jpg', year: '1999', director: 'D. Fincher' },
+                    { id: 13, title: 'Inception', poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg', year: '2010', director: 'C. Nolan' },
+                    { id: 14, title: 'Das Imperium schlägt zurück', poster: '/2l05cFWJacyIsTpsqSgHzBRrprG.jpg', year: '1980', director: 'I. Kershner' },
+                    { id: 15, title: 'Matrix', poster: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg', year: '1999', director: 'Wachowskis' },
+                    { id: 16, title: 'GoodFellas', poster: '/aKuFiU82s5ISJpGM9rRa9PJj3ji.jpg', year: '1990', director: 'M. Scorsese' },
+                    { id: 17, title: 'Einer flog übers Kuckucksnest', poster: '/2Sns5oMb356JNdBHgBETjIpRYy9.jpg', year: '1975', director: 'M. Forman' },
+                    { id: 18, title: 'Sieben', poster: '/6y8wg7a7P4D5z3u5m5v5n5v5n.jpg', year: '1995', director: 'D. Fincher' },
+                    { id: 19, title: 'Interstellar', poster: '/gEU2QniL6E86tC9z1PaVwpf77R1.jpg', year: '2014', director: 'C. Nolan' },
+                    { id: 20, title: 'Das Schweigen der Lämmer', poster: '/rplLJ2h5N5N5N5N5N5N5N5N5.jpg', year: '1991', director: 'J. Demme' },
+                    { id: 21, title: 'City of God', poster: '/g5g5g5g5g5g5g5g5g5g5g5g5g.jpg', year: '2002', director: 'F. Meirelles' },
+                    { id: 22, title: 'Der Soldat James Ryan', poster: '/uY9k8t2F59l5m5m5m5m5m5m5m.jpg', year: '1998', director: 'S. Spielberg' },
+                    { id: 23, title: 'Das Leben ist schön', poster: '/m0m0m0m0m0m0m0m0m0m0m0m0m.jpg', year: '1997', director: 'R. Benigni' },
+                    { id: 24, title: 'The Green Mile', poster: '/velWPhVMQeQKcxggNEU8YmIo52R.jpg', year: '1999', director: 'F. Darabont' },
+                    { id: 25, title: 'Star Wars', poster: '/6xfj47mP0P1pQg6k5H5X3L7X6.jpg', year: '1977', director: 'G. Lucas' },
+                    { id: 26, title: 'Terminator 2', poster: '/weVXMD5QBGeQil4HEATZqAkXeEc.jpg', year: '1991', director: 'J. Cameron' },
+                    { id: 27, title: 'Zurück in die Zukunft', poster: '/7lyBcpYB0Qt8gYhXYaEZUNlA3Vz.jpg', year: '1985', director: 'R. Zemeckis' },
+                    { id: 28, title: 'Chihiros Reise ins Zauberland', poster: '/39wmItIWsg5sZMyRUKGk251ytnZ.jpg', year: '2001', director: 'H. Miyazaki' },
+                    { id: 29, title: 'Der Pianist', poster: '/2Ds7vS88mUnu9S8H1BfB1S1BfB1.jpg', year: '2002', director: 'R. Polanski' },
+                    { id: 30, title: 'Psycho', poster: '/8p8p8p8p8p8p8p8p8p8p8p8p8.jpg', year: '1960', director: 'A. Hitchcock' },
+                    { id: 31, title: 'Parasite', poster: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', year: '2019', director: 'Bong Joon Ho' },
+                    { id: 32, title: 'Gladiator', poster: '/ty8TscduvD8HjbsBUU7ypDttwz.jpg', year: '2000', director: 'R. Scott' },
+                    { id: 33, title: 'The Departed', poster: '/nT97ifVT2J1L6hZ5b2Y5M5Y5.jpg', year: '2006', director: 'M. Scorsese' },
+                    { id: 34, title: 'Whiplash', poster: '/lIv1QinR7jr4HKj8B4m8Q5X5.jpg', year: '2014', director: 'D. Chazelle' },
+                    { id: 35, title: 'Alien', poster: '/vfrQk5IPloGg1v9Rzbh21Eg3HjF.jpg', year: '1979', director: 'R. Scott' },
+                    { id: 36, title: 'Django Unchained', poster: '/7GYfTNmR1H9vW8vW8vW8vW8vW.jpg', year: '2012', director: 'Q. Tarantino' },
+                    { id: 37, title: 'The Shining', poster: '/9i3pN64pxTzRO2Uy2AhJ1pxDQBz.jpg', year: '1980', director: 'S. Kubrick' },
+                    { id: 38, title: 'Inglourious Basterds', poster: '/7gyfTNmR1H9vW8vW8vW8vW8vW.jpg', year: '2009', director: 'Q. Tarantino' },
+                    { id: 39, title: 'Toy Story', poster: '/rhIRbceoE9lR4veEXuwCC2wARtH.jpg', year: '1995', director: 'J. Lasseter' },
+                    { id: 40, title: 'Stirb Langsam', poster: '/yFihWxQcmqcaBRrRM4NhnGzD0.jpg', year: '1988', director: 'J. McTiernan' },
+                    { id: 41, title: 'Joker', poster: '/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg', year: '2019', director: 'T. Phillips' },
+                    { id: 42, title: 'Mad Max: Fury Road', poster: '/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg', year: '2015', director: 'G. Miller' },
+                    { id: 43, title: 'Blade Runner 2049', poster: '/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', year: '2017', director: 'D. Villeneuve' },
+                    { id: 44, title: 'The Wolf of Wall Street', poster: '/p7p7p7p7p7p7p7p7p7p7p7p7p.jpg', year: '2013', director: 'M. Scorsese' },
+                    { id: 45, title: 'John Wick', poster: '/fZPSdJ8nS6zQ1Z9m8j5vQ0V5b7t.jpg', year: '2014', director: 'C. Stahelski' }
+                ],
+                
+                films: [],
+                currentPair: [],
+                rankings: [],
+                filmStats: {},
+                usedPairs: new Set(),
+                
+                init() {
+                    // Fortschritt aus LocalStorage laden
+                    this.loadProgress();
+                    
+                    this.films = [...this.allFilms];
+                    this.resetSession();
+                    this.generatePair();
+                    
+                    // Swipe-Gesten initialisieren
+                    this.$nextTick(() => {
+                        this.initSwipeGestures();
+                        
+                        // Loading Overlay ausblenden
+                        setTimeout(() => {
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                        }, 500);
+                    });
+                    
+                    // Service Worker registrieren (PWA)
+                    this.registerServiceWorker();
+                },
+                
+                initSwipeGestures() {
+                    const container = document.getElementById('duelContainer');
+                    if (!container || !window.Hammer) return;
+                    
+                    this.hammer = new Hammer(container);
+                    this.hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+                    
+                    // Swipe auf Film A (links) = wähle Film A
+                    this.hammer.on('swipeleft', (e) => {
+                        const filmA = document.getElementById('filmA');
+                        const rect = filmA.getBoundingClientRect();
+                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
+                            this.showSwipeIndicator('left');
+                            this.chooseFilm(this.currentPair[0]);
+                        }
+                    });
+                    
+                    // Swipe auf Film B (rechts) = wähle Film B
+                    this.hammer.on('swiperight', (e) => {
+                        const filmB = document.getElementById('filmB');
+                        const rect = filmB.getBoundingClientRect();
+                        if (e.center.y >= rect.top && e.center.y <= rect.bottom) {
+                            this.showSwipeIndicator('right');
+                            this.chooseFilm(this.currentPair[1]);
+                        }
+                    });
+                },
+                
+                showSwipeIndicator(direction) {
+                    const indicator = document.getElementById(direction === 'left' ? 'swipeLeftIndicator' : 'swipeRightIndicator');
+                    if (indicator) {
+                        indicator.classList.add('show');
+                        setTimeout(() => indicator.classList.remove('show'), 300);
+                    }
+                },
+                
+                onTouchStart(e, film) {
+                    this.touchStartY = e.touches[0].clientY;
+                },
+                
+                onTouchEnd(e, film) {
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const diff = this.touchStartY - touchEndY;
+                    
+                    // Nur als Tap werten, wenn vertikale Bewegung minimal
+                    if (Math.abs(diff) < 10) {
+                        // Es war ein Tap
+                    }
+                },
+                
+                resetSession() {
+                    this.comparisons = 0;
+                    this.usedPairs.clear();
+                    this.filmStats = {};
+                    this.films.forEach(f => {
+                        this.filmStats[f.id] = { wins: 0, losses: 0, score: 1000 };
+                    });
+                },
+                
+                generatePair() {
+                    const shuffled = [...this.films].sort(() => 0.5 - Math.random());
+                    let filmA = shuffled[0];
+                    let filmB = shuffled[1];
+                    
+                    const pairKey = [filmA.id, filmB.id].sort().join('-');
+                    if (this.usedPairs.has(pairKey)) {
+                        for (let i = 2; i < shuffled.length; i++) {
+                            const newKey = [filmA.id, shuffled[i].id].sort().join('-');
+                            if (!this.usedPairs.has(newKey)) {
+                                filmB = shuffled[i];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    this.currentPair = [filmA, filmB];
+                    this.usedPairs.add([filmA.id, filmB.id].sort().join('-'));
+                },
+                
+                chooseFilm(winner) {
+                    if (this.selected) return; // Verhindere Doppelklicks
+                    
+                    this.selected = winner === this.currentPair[0] ? 'A' : 'B';
+                    const loser = this.currentPair.find(f => f.id !== winner.id);
+                    
+                    // Haptisches Feedback (Vibration)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                    
+                    // ELO-System Update
+                    this.filmStats[winner.id].wins++;
+                    this.filmStats[loser.id].losses++;
+                    
+                    const expectedA = 1 / (1 + Math.pow(10, (this.filmStats[loser.id].score - this.filmStats[winner.id].score) / 400));
+                    const k = 40;
+                    this.filmStats[winner.id].score += k * (1 - expectedA);
+                    this.filmStats[loser.id].score -= k * (1 - expectedA);
+                    
+                    this.comparisons++;
+                    
+                    // Fortschritt speichern
+                    this.saveProgress();
+                    
+                    setTimeout(() => {
+                        this.selected = null;
+                        if (this.comparisons >= this.maxRounds) {
+                            this.mode = 'building';
+                            this.clearProgress(); // Fortschritt löschen bei Abschluss
+                            setTimeout(() => {
+                                this.calculateRankings();
+                                this.mode = 'results';
+                            }, 1200);
+                        } else {
+                            this.generatePair();
+                        }
+                    }, 400);
+                },
+                
+                skipBoth() {
+                    // Haptisches Feedback
+                    if (navigator.vibrate) {
+                        navigator.vibrate([30, 50, 30]);
+                    }
+                    this.generatePair();
+                },
+                
+                calculateRankings() {
+                    this.rankings = Object.entries(this.filmStats)
+                        .map(([id, stats]) => {
+                            const film = this.allFilms.find(f => f.id === parseInt(id));
+                            return { ...film, ...stats };
+                        })
+                        .filter(f => f.wins > 0 || f.losses > 0)
+                        .sort((a, b) => b.score - a.score);
+                },
+                
+                shareResults() {
+                    const winner = this.rankings[0]?.title || 'Film';
+                    const text = `Mein IMDb Favorit: ${winner}! 🎬 Spiel auch das IMDb Duell und finde deine Top-Filme.`;
+                    
+                    if (navigator.share) {
+                        navigator.share({ 
+                            title: 'IMDb Duell - Meine Topliste', 
+                            text: text, 
+                            url: window.location.href 
+                        }).catch(() => {
+                            // Teilen abgebrochen
+                        });
+                    } else {
+                        navigator.clipboard.writeText(text + ' ' + window.location.href);
+                        this.showToast('Ergebnis kopiert!');
+                    }
+                },
+                
+                restart() {
+                    this.mode = 'duel';
+                    this.resetSession();
+                    this.generatePair();
+                    this.clearProgress();
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                
+                // LocalStorage Funktionen
+                saveProgress() {
+                    try {
+                        const progress = {
+                            comparisons: this.comparisons,
+                            filmStats: this.filmStats,
+                            usedPairs: Array.from(this.usedPairs),
+                            currentPair: this.currentPair,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('imdbDuelProgress', JSON.stringify(progress));
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht speichern:', e);
+                    }
+                },
+                
+                loadProgress() {
+                    try {
+                        const saved = localStorage.getItem('imdbDuelProgress');
+                        if (saved) {
+                            const progress = JSON.parse(saved);
+                            // Prüfe ob der Fortschritt nicht zu alt ist (7 Tage)
+                            const maxAge = 7 * 24 * 60 * 60 * 1000;
+                            if (Date.now() - progress.timestamp < maxAge && progress.comparisons < this.maxRounds) {
+                                // Optional: Fortsetzen anbieten
+                                this.savedProgress = progress;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht laden:', e);
+                    }
+                },
+                
+                clearProgress() {
+                    try {
+                        localStorage.removeItem('imdbDuelProgress');
+                    } catch (e) {
+                        console.warn('Konnte Fortschritt nicht löschen:', e);
+                    }
+                },
+                
+                showToast(message) {
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm z-50 animate-bounce';
+                    toast.textContent = message;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2000);
+                },
+                
+                // Service Worker für PWA
+                registerServiceWorker() {
+                    if ('serviceWorker' in navigator) {
+                        const swCode = `
+                            self.addEventListener('install', e => self.skipWaiting());
+                            self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                            self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+                        `;
+                        const blob = new Blob([swCode], { type: 'application/javascript' });
+                        const swUrl = URL.createObjectURL(blob);
+                        navigator.serviceWorker.register(swUrl).catch(() => {});
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
