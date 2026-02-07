@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinkgeld Battle | Laureen vs. Maurice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .vs-badge { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
+        .card-maurice { border-bottom: 4px solid #3b82f6; }
+        .card-laureen { border-bottom: 4px solid #ec4899; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">🍿 Trinkgeld Battle 🍿</h1>
+            <p class="text-slate-400 text-sm font-medium mt-2">UCI Concession Fight: Wer hat heute abgeräumt?</p>
+        </div>
+
+        <!-- VS Section -->
+        <div class="grid grid-cols-2 gap-4 mb-8 relative">
+            <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div class="vs-badge text-white font-black px-4 py-2 rounded-2xl transform rotate-12 shadow-xl border-4 border-slate-900">VS</div>
+            </div>
+
+            <!-- Maurice Card -->
+            <div class="glass rounded-3xl p-6 text-center card-maurice">
+                <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-ninja text-blue-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Maurice</h3>
+                <div class="text-3xl font-black text-white">0,00 €</div>
+                <div class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-2">Challenger</div>
+            </div>
+
+            <!-- Laureen Card -->
+            <div class="glass rounded-3xl p-6 text-center card-laureen">
+                <div class="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-astronaut text-pink-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Laureen</h3>
+                <div class="text-3xl font-black text-white">0,00 €</div>
+                <div class="text-[10px] text-pink-400 font-bold uppercase tracking-widest mt-2">Defender</div>
+            </div>
+        </div>
+
+        <!-- History / Stats -->
+        <div class="glass rounded-3xl p-6 mb-8 border border-white/5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6"><i class="fas fa-history mr-2"></i> Letzte Fights</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                    <div class="text-xs font-medium text-slate-400">07. Feb 2026</div>
+                    <div class="flex gap-4">
+                        <span class="text-sm font-bold text-blue-400">0,00 €</span>
+                        <span class="text-slate-600">vs</span>
+                        <span class="text-sm font-bold text-pink-400">0,00 €</span>
+                    </div>
+                    <div class="bg-slate-500/10 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold">Draw</div>
+                </div>
+                <p class="text-center text-[10px] text-slate-500 italic mt-4">Warte auf Daten von der heutigen Schicht...</p>
+            </div>
+        </div>
+
+        <!-- Scoreboard Summary -->
+        <div class="grid grid-cols-3 gap-4 mb-10 text-center">
+            <div class="glass rounded-2xl p-4">
+                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Siege Maurice</div>
+                <div class="text-xl font-black text-white">0</div>
+            </div>
+            <div class="glass rounded-2xl p-4 bg-amber-500/5 border border-amber-500/20">
+                <div class="text-[10px] text-amber-500 uppercase font-bold mb-1">Highscore</div>
+                <div class="text-xl font-black text-white">---</div>
+            </div>
+            <div class="glass rounded-2xl p-4">
+                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Siege Laureen</div>
+                <div class="text-xl font-black text-white">0</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center">
+            <a href="index.html" class="text-slate-500 hover:text-white text-xs transition-colors">
+                <i class="fas fa-arrow-left mr-1"></i> Zurück zum Haupt-Dashboard
+            </a>
+            <p class="text-[9px] text-slate-600 mt-8 font-medium">Walter Battle Engine v1.0 • Möge der Beste gewinnen!</p>
+        </div>
+    </div>
+</body>
+</html>
