@@ -1,0 +1,16 @@
+{
+  "_comment": "Template - Secrets manuell einfügen!",
+  "meta": { "lastTouchedVersion": "2026.2.2" },
+  "auth": {
+    "profiles": {
+      "google:default": { "provider": "google", "mode": "api_key" },
+      "openrouter:default": { "provider": "openrouter", "mode": "api_key" }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "openrouter/anthropic/claude-3.5-sonnet" },
+      "workspace": "/home/node/openclaw"
+    }
+  }
+}
