@@ -571,7 +571,8 @@
     function getWeekDays() {
       const now = new Date();
       const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay() + 1 + (weekOffset * 7)); // Monday
+      // Kino-Woche: Donnerstag bis Mittwoch
+      startOfWeek.setDate(now.getDate() - (now.getDay() + 3) % 7 + (weekOffset * 7));
       startOfWeek.setHours(0, 0, 0, 0);
       
       const days = [];
@@ -598,7 +599,7 @@
       const container = document.getElementById('weekGrid');
       let html = '';
       
-      const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+      const dayNames = ['Do', 'Fr', 'Sa', 'So', 'Mo', 'Di', 'Mi'];
       
       days.forEach((d, i) => {
         const dateStr = d.toISOString().slice(0, 10);
