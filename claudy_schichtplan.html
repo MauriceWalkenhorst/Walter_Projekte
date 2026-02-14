@@ -663,12 +663,21 @@
     }
 
     function updateStats(shifts) {
-      const totalH = shifts.reduce((s, x) => s + parseFloat(calcHours(x.start, x.end)), 0);
-      document.getElementById('totalShifts').textContent = shifts.length;
-      document.getElementById('totalHours').textContent = totalH.toFixed(1) + 'h';
-      document.getElementById('estEarnings').textContent = '€' + (totalH * 12.5).toFixed(0);
-      
       const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      
+      // Only current month
+      const monthShifts = shifts.filter(s => s.start.startsWith(currentMonth));
+      const monthHours = monthShifts.reduce((s, x) => s + parseFloat(calcHours(x.start, x.end)), 0);
+      
+      // Total (all)
+      const totalHours = shifts.reduce((s, x) => s + parseFloat(calcHours(x.start, x.end)), 0);
+      
+      document.getElementById('totalShifts').textContent = monthShifts.length;
+      document.getElementById('totalHours').textContent = monthHours.toFixed(1) + 'h';
+      document.getElementById('estEarnings').textContent = '€' + (monthHours * 12.5).toFixed(0);
+      
+      // Next shift (future only)
       const future = shifts.filter(s => new Date(s.start) >= now).sort((a,b) => new Date(a.start) - new Date(b.start));
       if (future.length) {
         const d = new Date(future[0].start);
