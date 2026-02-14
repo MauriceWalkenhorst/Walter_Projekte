@@ -478,8 +478,9 @@
     </div>
 
     <div class="view-tabs">
-      <button class="tab active" onclick="switchView('list')">📅 Woche</button>
-      <button class="tab" onclick="switchView('calendar')">📆 Monat</button>
+      <button class="tab active" onclick="switchView('week')">📅 Woche</button>
+      <button class="tab" onclick="switchView('list')">📋 Monat</button>
+      <button class="tab" onclick="switchView('calendar')">📆 Kalender</button>
       <button class="tab" onclick="switchView('summary')">📊 Übersicht</button>
       <button class="tab" onclick="switchView('lohn')">💶 Lohn</button>
     </div>
@@ -593,7 +594,20 @@
       const end = days[6];
       const startStr = start.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
       const endStr = end.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
-      document.getElementById('weekLabel').textContent = `${startStr} - ${endStr}`;
+      
+      // Calculate week hours
+      let weekHours = 0;
+      let weekShifts = 0;
+      days.forEach(d => {
+        const dateStr = d.toISOString().slice(0, 10);
+        const dayShifts = allShifts.filter(s => s.start.startsWith(dateStr));
+        dayShifts.forEach(s => {
+          weekHours += parseFloat(calcHours(s.start, s.end));
+          weekShifts++;
+        });
+      });
+      
+      document.getElementById('weekLabel').innerHTML = `${startStr} - ${endStr} <span style="color:var(--accent)">${weekHours.toFixed(1)}h · ${weekShifts} Schichten</span>`;
       
       // Render days
       const container = document.getElementById('weekGrid');
@@ -863,7 +877,7 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       event.target.classList.add('active');
       
-      document.getElementById('weekView').classList.toggle('hidden', view !== 'list');
+      document.getElementById('weekView').classList.toggle('hidden', view !== 'week');
       document.getElementById('monthList').classList.toggle('hidden', view !== 'list');
       document.getElementById('calendarView').classList.toggle('hidden', view !== 'calendar');
       document.getElementById('summaryView').classList.toggle('hidden', view !== 'summary');
