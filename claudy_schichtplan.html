@@ -19,8 +19,8 @@
       --text-primary: #fafafa;
       --text-secondary: #a1a1aa;
       --text-muted: #71717a;
-      --accent: #8b5cf6;
-      --accent-glow: rgba(139, 92, 246, 0.3);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.3);
       --success: #22c55e;
       --warning: #f59e0b;
       --error: #ef4444;
@@ -40,8 +40,8 @@
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: 
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(139, 92, 246, 0.15), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(236, 72, 153, 0.1), transparent);
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59, 130, 246, 0.2), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(96, 165, 250, 0.15), transparent);
       pointer-events: none;
       z-index: 0;
     }
@@ -72,7 +72,7 @@
     .logo-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, var(--accent), var(--pink));
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -132,6 +132,26 @@
       gap: 0.5rem;
     }
 
+    .section-subtitle {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .past-shifts .shift-card {
+      opacity: 0.6;
+      border-color: var(--border);
+    }
+
+    .past-shifts .shift-card:hover {
+      opacity: 0.9;
+    }
+
+    .shift-card.past {
+      opacity: 0.5;
+    }
+
     .shifts-list {
       display: flex;
       flex-direction: column;
@@ -164,8 +184,18 @@
     .shift-card.fnb::before { background: #f59e0b; }
     .shift-card.boxoffice::before { background: #3b82f6; }
     .shift-card.usher::before { background: #22c55e; }
-    .shift-card.navigator::before { background: #ec4899; }
+    .shift-card.navigator::before { background: #8b5cf6; }
     .shift-card.swap::before { background: #ef4444; }
+
+    .shift-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+    }
 
     .shift-card:hover {
       background: var(--bg-hover);
@@ -313,20 +343,24 @@
   </div>
 
   <script>
-    // Load shifts from JSON
+    // Load shifts from JSON - ALL shifts (past and future)
     async function loadShifts() {
       try {
         const response = await fetch('shifts.json');
         const shifts = await response.json();
         
-        // Filter future shifts only
-        const now = new Date();
-        const futureShifts = shifts.filter(s => new Date(s.start) >= now).sort((a, b) => 
-          new Date(a.start) - new Date(b.start)
+        // Sort ALL shifts by date (newest first for past, upcoming for future)
+        const allShifts = shifts.sort((a, b) => 
+          new Date(b.start) - new Date(a.start)
         );
 
-        renderShifts(futureShifts);
-        updateStats(futureShifts);
+        // Split into past and future
+        const now = new Date();
+        const futureShifts = allShifts.filter(s => new Date(s.start) >= now);
+        const pastShifts = allShifts.filter(s => new Date(s.start) < now);
+        
+        renderShifts(futureShifts, pastShifts);
+        updateStats(allShifts);
         document.getElementById('lastUpdated').textContent = 'Quinyx synchronisiert';
       } catch (e) {
         console.error('Failed to load shifts:', e);
@@ -354,7 +388,7 @@
     function getBadgeText(title) {
       if (title.includes('F&B')) return '🍔 F&B';
       if (title.includes('Boxoffice') || title.includes('Kinokasse')) return '🎫 Kasse';
-      if (title.includes('Usher') || title.includes('Platzanweiser')) return '🚪 Usher';
+      if (title.includes('Usher') || title.includes('Platzanweiser')) return '🚪 Platzanweiser';
       if (title.includes('Navigator')) return '🧭 Navigator';
       return '📋';
     }
@@ -382,51 +416,73 @@
       return ((endDate - startDate) / (1000 * 60 * 60)).toFixed(1);
     }
 
-    function renderShifts(shifts) {
+    function renderShifts(futureShifts, pastShifts) {
       const container = document.getElementById('shiftsList');
+      let html = '';
       
-      if (shifts.length === 0) {
-        container.innerHTML = '<div class="empty-state">Keine kommenden Schichten ✅</div>';
-        return;
+      // Future shifts section
+      if (futureShifts.length > 0) {
+        html += '<h3 class="section-subtitle">📅 Kommende Schichten</h3>';
+        html += '<div class="shifts-list">';
+        html += futureShifts.map(shift => renderShiftCard(shift, false)).join('');
+        html += '</div>';
       }
+      
+      // Past shifts section
+      if (pastShifts.length > 0) {
+        html += '<h3 class="section-subtitle" style="margin-top: 2rem;">✅ Vergangene Schichten (für Lohnabrechnung)</h3>';
+        html += '<div class="shifts-list past-shifts">';
+        html += pastShifts.map(shift => renderShiftCard(shift, true)).join('');
+        html += '</div>';
+      }
+      
+      if (futureShifts.length === 0 && pastShifts.length === 0) {
+        html = '<div class="empty-state">Keine Schichten gefunden</div>';
+      }
+      
+      container.innerHTML = html;
+    }
 
-      container.innerHTML = shifts.map(shift => {
-        const type = getShiftType(shift.title);
-        const badgeClass = getBadgeClass(shift.title);
-        const badgeText = getBadgeText(shift.title);
-        const isSwap = shift.title.includes('*');
-        
-        const dateInfo = formatDate(shift.start);
-        const hours = calculateHours(shift.start, shift.end);
-        
-        return `
-          <div class="shift-card ${type} ${isSwap ? 'swap' : ''}">
-            <div class="shift-date">
-              <div class="shift-day">${dateInfo.day}</div>
-              <div class="shift-date-num">${dateInfo.date}</div>
-              <div class="shift-month">${dateInfo.month}</div>
-            </div>
-            <div class="shift-info">
-              <div class="shift-title">${shift.title.replace('q: ', '').replace('[*]', '🔄')}</div>
-              <div class="shift-time">${formatTime(shift.start)} - ${formatTime(shift.end)} (${hours}h)</div>
-              <div class="shift-location">${shift.location}</div>
-            </div>
-            <span class="shift-badge ${badgeClass}">${badgeText}</span>
+    function renderShiftCard(shift, isPast) {
+      const type = getShiftType(shift.title);
+      const badgeClass = getBadgeClass(shift.title);
+      const badgeText = getBadgeText(shift.title);
+      const isSwap = shift.title.includes('*');
+      
+      const dateInfo = formatDate(shift.start);
+      const hours = calculateHours(shift.start, shift.end);
+      const pastStyle = isPast ? 'opacity: 0.6;' : '';
+      
+      return `
+        <div class="shift-card ${type} ${isSwap ? 'swap' : ''}" style="${pastStyle}">
+          <div class="shift-date">
+            <div class="shift-day">${dateInfo.day}</div>
+            <div class="shift-date-num">${dateInfo.date}</div>
+            <div class="shift-month">${dateInfo.month}</div>
           </div>
-        `;
-      }).join('');
+          <div class="shift-info">
+            <div class="shift-title">${shift.title.replace('q: ', '').replace('[*]', '🔄')}</div>
+            <div class="shift-time">${formatTime(shift.start)} - ${formatTime(shift.end)} (${hours}h)</div>
+            <div class="shift-location">${shift.location}</div>
+          </div>
+          <span class="shift-badge ${badgeClass}">${badgeText}</span>
+        </div>
+      `;
     }
 
     function updateStats(shifts) {
+      // Use ALL shifts for stats (including past)
       document.getElementById('totalShifts').textContent = shifts.length;
       
-      // Calculate total hours
+      // Calculate total hours from ALL shifts
       const totalHours = shifts.reduce((sum, s) => sum + parseFloat(calculateHours(s.start, s.end)), 0);
       document.getElementById('totalHours').textContent = totalHours.toFixed(1) + 'h';
       
-      // Next shift
-      if (shifts.length > 0) {
-        const next = shifts[0];
+      // Next shift (first future shift)
+      const now = new Date();
+      const futureShifts = shifts.filter(s => new Date(s.start) >= now);
+      if (futureShifts.length > 0) {
+        const next = futureShifts[0];
         const dateInfo = formatDate(next.start);
         document.getElementById('nextShift').textContent = `${dateInfo.day}, ${dateInfo.date}.${dateInfo.month}`;
       } else {
