@@ -229,6 +229,7 @@
     .shift-info { flex: 1; }
     .shift-title { font-weight: 600; font-size: 0.8125rem; }
     .shift-time { font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--text-secondary); }
+    .shift-desc { font-size: 0.625rem; color: var(--text-muted); margin-top: 0.125rem; }
 
     .shift-badge {
       padding: 0.2rem 0.375rem; border-radius: 8px; font-size: 0.5625rem;
@@ -564,11 +565,12 @@
           const date = new Date(s.start);
           const day = ['So','Mo','Di','Mi','Do','Fr','Sa'][date.getDay()];
           const hours = calcHours(s.start, s.end);
+          const desc = s.description ? `<div class="shift-desc">${s.description.replace(/\n/g, ' ').substring(0,50)}</div>` : '';
           
           html += `<div class="shift-card ${type} ${isPast?'past':''}">
             <div class="shift-date"><div class="shift-day">${day}</div><div class="shift-date-num">${date.getDate()}</div></div>
             <div class="shift-info"><div class="shift-title">${s.title.replace('q: ','').replace('[*]','🔄')}</div>
-            <div class="shift-time">${formatTime(s.start)} - ${formatTime(s.end)} (${hours}h)</div></div>
+            <div class="shift-time">${formatTime(s.start)} - ${formatTime(s.end)} (${hours}h)</div>${desc}</div>
             <span class="shift-badge ${badge}">${getBadgeText(s.title)}</span>
           </div>`;
         });
@@ -664,10 +666,11 @@
 
     function updateStats(shifts) {
       const now = new Date();
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const monthName = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
       
       // Only current month
-      const monthShifts = shifts.filter(s => s.start.startsWith(currentMonth));
+      const monthShifts = shifts.filter(s => s.start.startsWith(currentMonthKey));
       const monthHours = monthShifts.reduce((s, x) => s + parseFloat(calcHours(x.start, x.end)), 0);
       
       // Total (all)
@@ -676,6 +679,9 @@
       document.getElementById('totalShifts').textContent = monthShifts.length;
       document.getElementById('totalHours').textContent = monthHours.toFixed(1) + 'h';
       document.getElementById('estEarnings').textContent = '€' + (monthHours * 12.5).toFixed(0);
+      
+      // Update header to show current month
+      document.querySelector('.logo h1').innerHTML = `Claudy <span>Schichtplan</span> - ${monthName}`;
       
       // Next shift (future only)
       const future = shifts.filter(s => new Date(s.start) >= now).sort((a,b) => new Date(a.start) - new Date(b.start));
