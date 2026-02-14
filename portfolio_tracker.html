@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claudy's Portfolio Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Space Grotesk', sans-serif; }
+        .glow { box-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white min-h-screen">
+    <div class="max-w-md mx-auto px-4 py-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold">💰 Claudy's Portfolio</h1>
+            <p class="text-gray-400 text-sm">High-Risk Experiment • Start: 100€</p>
+        </div>
+
+        <!-- Total Value -->
+        <div class="glass-card rounded-2xl p-6 mb-6 text-center glow">
+            <p class="text-gray-400 text-sm">Aktueller Wert</p>
+            <div class="text-5xl font-bold text-emerald-400" id="total">100,00€</div>
+            <div class="text-xl" id="change">+0,00€ (+0%)</div>
+        </div>
+
+        <!-- Portfolio -->
+        <div class="space-y-3 mb-6">
+            <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">₿ Bitcoin ETF</div>
+                    <div class="text-xs text-gray-400">35€ investiert</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold" id="btc-val">35,00€</div>
+                    <div class="text-xs text-emerald-400" id="btc-chg">+0%</div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">Ξ Ethereum</div>
+                    <div class="text-xs text-gray-400">25€ investiert</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold" id="eth-val">25,00€</div>
+                    <div class="text-xs text-emerald-400" id="eth-chg">+0%</div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">🇩🇪 Rheinmetall</div>
+                    <div class="text-xs text-gray-400">20€ investiert</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold" id="rhm-val">20,00€</div>
+                    <div class="text-xs text-emerald-400" id="rhm-chg">+0%</div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">🚀 NVIDIA</div>
+                    <div class="text-xs text-gray-400">15€ investiert</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold" id="nvda-val">15,00€</div>
+                    <div class="text-xs text-emerald-400" id="nvda-chg">+0%</div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">📈 MSCI World</div>
+                    <div class="text-xs text-gray-400">5€ investiert</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold" id="msci-val">5,00€</div>
+                    <div class="text-xs text-emerald-400" id="msci-chg">+0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Button -->
+        <button onclick="updatePrices()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl">
+            Preise aktualisieren
+        </button>
+        
+        <p class="text-center text-gray-500 text-xs mt-4">
+            Daten manuell eintragen • Keine Live-API
+        </p>
+    </div>
+
+    <script>
+        // Start-Werte (100€)
+        const start = 100;
+        
+        // Aktuelle Werte (manuell eintragen nach jedem Update)
+        let current = {
+            btc: 35,
+            eth: 25,
+            rhm: 20,
+            nvda: 15,
+            msci: 5
+        };
+        
+        function updatePrices() {
+            // Manuell eintragen hier:
+            // current.btc = parseFloat(prompt('Bitcoin ETF Wert?'));
+            // current.eth = parseFloat(prompt('Ethereum Wert?'));
+            // ...
+            
+            const total = current.btc + current.eth + current.rhm + current.nvda + current.msci;
+            const change = total - start;
+            const changePct = (change / start) * 100;
+            
+            document.getElementById('total').textContent = total.toFixed(2) + '€';
+            document.getElementById('change').textContent = 
+                (change >= 0 ? '+' : '') + change.toFixed(2) + '€ (' + changePct.toFixed(1) + '%)';
+            document.getElementById('change').className = 
+                'text-xl ' + (change >= 0 ? 'text-emerald-400' : 'text-red-400');
+            
+            // Individual updates
+            updateAsset('btc', 35);
+            updateAsset('eth', 25);
+            updateAsset('rhm', 20);
+            updateAsset('nvda', 15);
+            updateAsset('msci', 5);
+        }
+        
+        function updateAsset(id, startVal) {
+            const currentVal = current[id] || startVal;
+            const change = ((currentVal - startVal) / startVal) * 100;
+            document.getElementById(id + '-val').textContent = currentVal.toFixed(2) + '€';
+            const chgEl = document.getElementById(id + '-chg');
+            chgEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(1) + '%';
+            chgEl.className = 'text-xs ' + (change >= 0 ? 'text-emerald-400' : 'text-red-400');
+        }
+        
+        updatePrices();
+    </script>
+</body>
+</html>
